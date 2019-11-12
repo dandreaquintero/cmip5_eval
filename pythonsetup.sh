@@ -18,12 +18,12 @@ pip2 install virtualenv
 # Created work directory and virtual venv3
 mkdir python3
 cd python3
-virtualenv venv3
+python3 -m venv venv3 # or virtualenv --python=python3 venv3
 
 # Created work directory and virtual venv2
 mkdir python2
 cd python2
-virtualenv venv2
+virtualenv --python=python2 venv2
 
 # Activate virtual env with:
 source venv3/bin/activate

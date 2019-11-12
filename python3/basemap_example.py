@@ -11,7 +11,7 @@ from mpl_toolkits.basemap import Basemap
 TK_SILENCE_DEPRECATION=1
 
 #file we want to open
-my_example_nc_file = 't2m_mon_2011-2015.nc'
+my_example_nc_file = '../nc_files/examples/t2m_mon_2011-2015.nc'
 
 #Dataset is a function from the netCDF4 Dataset
 #open in read-only mode

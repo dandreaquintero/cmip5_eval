@@ -55,36 +55,36 @@ def ncdump(nc_fid, verb=True):
             a valid netCDF4.Dataset.variables key
         """
         try:
-            print "\t\ttype:", repr(nc_fid.variables[key].dtype)
+            print("\t\ttype:", repr(nc_fid.variables[key].dtype))
             for ncattr in nc_fid.variables[key].ncattrs():
-                print '\t\t%s:' % ncattr,\
-                      repr(nc_fid.variables[key].getncattr(ncattr))
+                print('\t\t%s:' % ncattr,\
+                      repr(nc_fid.variables[key].getncattr(ncattr)))
         except KeyError:
-            print "\t\tWARNING: %s does not contain variable attributes" % key
+            print("\t\tWARNING: %s does not contain variable attributes" % key)
 
     # NetCDF global attributes
     nc_attrs = nc_fid.ncattrs()
     if verb:
-        print "NetCDF Global Attributes:"
+        print("NetCDF Global Attributes:")
         for nc_attr in nc_attrs:
-            print '\t%s:' % nc_attr, repr(nc_fid.getncattr(nc_attr))
+            print('\t%s:' % nc_attr, repr(nc_fid.getncattr(nc_attr)))
     nc_dims = [dim for dim in nc_fid.dimensions]  # list of nc dimensions
     # Dimension shape information.
     if verb:
-        print "NetCDF dimension information:"
+        print("NetCDF dimension information:")
         for dim in nc_dims:
-            print "\tName:", dim 
-            print "\t\tsize:", len(nc_fid.dimensions[dim])
+            print("\tName:", dim)
+            print("\t\tsize:", len(nc_fid.dimensions[dim]))
             print_ncattr(dim)
     # Variable information.
     nc_vars = [var for var in nc_fid.variables]  # list of nc variables
     if verb:
-        print "NetCDF variable information:"
+        print("NetCDF variable information:")
         for var in nc_vars:
             if var not in nc_dims:
-                print '\tName:', var
-                print "\t\tdimensions:", nc_fid.variables[var].dimensions
-                print "\t\tsize:", nc_fid.variables[var].size
+                print('\tName:', var)
+                print("\t\tdimensions:", nc_fid.variables[var].dimensions)
+                print("\t\tsize:", nc_fid.variables[var].size)
                 print_ncattr(var)
     return nc_attrs, nc_dims, nc_vars
 
@@ -158,10 +158,10 @@ for ncattr in nc_fid.variables['time'].ncattrs():
 # Assign the dimension data to the new NetCDF file.
 w_nc_fid.variables['time'][:] = time
 w_nc_var = w_nc_fid.createVariable('air', 'f8', ('time'))
-w_nc_var.setncatts({'long_name': u"mean Daily Air temperature",\
-                    'units': u"degK", 'level_desc': u'Surface',\
-                    'var_desc': u"Air temperature",\
-                    'statistic': u'Mean\nM'})
+w_nc_var.setncatts({'long_name': "mean Daily Air temperature",\
+                    'units': "degK", 'level_desc': 'Surface',\
+                    'var_desc': "Air temperature",\
+                    'statistic': 'Mean\nM'})
 w_nc_fid.variables['air'][:] = air[time_idx, lat_idx, lon_idx]
 w_nc_fid.close()  # close the new file
 
@@ -205,10 +205,10 @@ w_nc_fid.variables['lon'][:] = lons
 
 # Ok, time to create our departure variable
 w_nc_var = w_nc_fid.createVariable('air_dep', 'f8', ('time', 'lat', 'lon'))
-w_nc_var.setncatts({'long_name': u"mean Daily Air temperature departure",\
-                    'units': u"degK", 'level_desc': u'Surface',\
-                    'var_desc': u"Air temperature departure",\
-                    'statistic': u'Mean\nM'})
+w_nc_var.setncatts({'long_name': "mean Daily Air temperature departure",\
+                    'units': "degK", 'level_desc': 'Surface',\
+                    'var_desc': "Air temperature departure",\
+                    'statistic': 'Mean\nM'})
 w_nc_fid.variables['air_dep'][:] = departure
 w_nc_fid.close()  # close the new file
 
