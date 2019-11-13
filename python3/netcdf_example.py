@@ -16,13 +16,14 @@ REFERENCES
     NCEP/NCAR Reanalysis -- Kalnay et al. 1996
         http://dx.doi.org/10.1175/1520-0477(1996)077<0437:TNYRP>2.0.CO;2
 '''
+
 import datetime as dt  # Python standard library datetime  module
 import numpy as np
 from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap, addcyclic, shiftgrid
 
-
+#this is a function
 def ncdump(nc_fid, verb=True):
     '''
     ncdump outputs dimensions, variables and their attribute information.
@@ -88,10 +89,12 @@ def ncdump(nc_fid, verb=True):
                 print_ncattr(var)
     return nc_attrs, nc_dims, nc_vars
 
+#here starts the program
+TK_SILENCE_DEPRECATION=1
 nc_f = '../nc_files/examples/air.sig995.2012.nc'  # Your filename
 nc_fid = Dataset(nc_f, 'r')  # Dataset is the class behavior to open the file
                              # and create an instance of the ncCDF4 class
-nc_attrs, nc_dims, nc_vars = ncdump(nc_fid)
+nc_attrs, nc_dims, nc_vars = ncdump(nc_fid,True)
 # Extract data from NetCDF file
 lats = nc_fid.variables['lat'][:]  # extract/copy the data
 lons = nc_fid.variables['lon'][:]
@@ -102,8 +105,7 @@ time_idx = 237  # some random day in 2012
 # Python and the renalaysis are slightly off in time so this fixes that problem
 offset = dt.timedelta(hours=48)
 # List of all times in the file as datetime objects
-dt_time = [dt.date(1, 1, 1) + dt.timedelta(hours=t) - offset\
-           for t in time]
+dt_time = [dt.date(1, 1, 1) + dt.timedelta(hours=t) - offset for t in time]
 cur_time = dt_time[time_idx]
 
 # Plot of global temperature on our random day
@@ -115,8 +117,21 @@ m = Basemap(projection='moll', llcrnrlat=-90, urcrnrlat=90,\
             llcrnrlon=0, urcrnrlon=360, resolution='c', lon_0=0)
 m.drawcoastlines()
 m.drawmapboundary()
-# Make the plot continuous
+# Make the plot continuous (adds the missing longitudes)
+# In this case, just adds the 360° longitude.
 air_cyclic, lons_cyclic = addcyclic(air[time_idx, :, :], lons)
+
+#Jut to print some info and the arrays
+# print(lons)
+# print ("#"*60)
+# print (len(air[time_idx, 0, :]))
+# print(air[time_idx, :, :])
+# print ("#"*60)
+# print (lons_cyclic)
+# print ("#"*60)
+# print (len(air_cyclic[0]))
+# print (air_cyclic)
+#
 # Shift the grid so lons go from -180 to 180 instead of 0 to 360.
 air_cyclic, lons_cyclic = shiftgrid(180., air_cyclic, lons_cyclic, start=False)
 # Create 2D lat/lon arrays for Basemap
