@@ -82,7 +82,7 @@ lat_0 = lats.mean()
 
 m = Basemap(width=5000000,height=3500000,
             resolution='l',projection='stere',\
-            lat_ts=40,lat_0=lat_0,lon_0=lon_0)
+            lat_ts=40,lat_0=lat_0,lon_0=lon_0)     #stere=stereographic projection
 
 # Because our lon and lat variables are 1D,
 # use meshgrid to create 2D arrays
@@ -107,6 +107,6 @@ cbar = m.colorbar(cs, location='bottom', pad="10%")
 cbar.set_label(t2m_units)
 
 # Add Title
-plt.title('DJF Maximum Temperature')
+plt.title('Temperature')
 
 plt.show()
