@@ -50,6 +50,8 @@ pip install geoviews
 #reset DYLD_FALLBACK_LIBRARY_PATH that is set in .bash_profile as /opt/local/lib/gcc7/
 #For something else (ncl?)
 
+pip intall cdo # install cdo: climate data operators
+
 export DYLD_FALLBACK_LIBRARY_PATH=$(HOME)/lib:/usr/local/lib:/lib:/usr/lib
 export DYLD_FALLBACK_LIBRARY_PATH=#empty also works
 
