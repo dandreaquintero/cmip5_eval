@@ -2,3 +2,4 @@
 nc_files/
 python3/venv3/
 python2/venv2/
+__pycache__
