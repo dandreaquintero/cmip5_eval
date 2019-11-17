@@ -52,6 +52,24 @@ pip install geoviews
 
 pip intall cdo # install cdo: climate data operators
 
+#matplotlib backend:
+#TkAgg works, but crashes when scrolling.
+#Instead of solve, better to use QT5 (only for python3)
+pip install PyQt5
+
+#Or choose the backend in each script with:
+import matplotlib
+matplotlib.use('Qt5agg')
+import matplotlib.pyplot as plt
+
+#Or, easier edit file:
+vim ~/.matplotlib/matplotlibrc
+#and add for Qt5agg
+backend: Qt5agg
+#or
+backend: TkAgg
+
+
 export DYLD_FALLBACK_LIBRARY_PATH=$(HOME)/lib:/usr/local/lib:/lib:/usr/lib
 export DYLD_FALLBACK_LIBRARY_PATH=#empty also works
 

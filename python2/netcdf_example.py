@@ -19,6 +19,8 @@ REFERENCES
 import datetime as dt  # Python standard library datetime  module
 import numpy as np
 from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap, addcyclic, shiftgrid
 
@@ -73,7 +75,7 @@ def ncdump(nc_fid, verb=True):
     if verb:
         print "NetCDF dimension information:"
         for dim in nc_dims:
-            print "\tName:", dim 
+            print "\tName:", dim
             print "\t\tsize:", len(nc_fid.dimensions[dim])
             print_ncattr(dim)
     # Variable information.
