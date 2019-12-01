@@ -52,6 +52,9 @@ pip install geoviews
 
 pip intall cdo # install cdo: climate data operators
 
+pip install nc-time-axis
+pip install netcdftime
+
 #matplotlib backend:
 #TkAgg works, but crashes when scrolling.
 #Instead of solve, better to use QT5 (only for python3)
@@ -82,3 +85,21 @@ source venv2/bin/activate
 
 #execute
 python test.py
+
+# ******* DOCKER ******
+
+# 1 start docker app from launcher
+Docker
+
+# 2 Mode to docker directory
+cd Documents/tesis/climate4impact-portal
+
+# 3 Start docker
+docker run -v ~/impactspace:/impactspace -v /etc/hosts:/etc/hosts -v `pwd`/docker/c4i_config:/config/ -p 444:444 -e EXTERNAL_HOSTNAME:${HOSTNAME} -e EXTERNAL_ADDRESS_HTTPS="https://${HOSTNAME}:444/" -it c4i
+
+# 4 Access from firefox to
+https://localhost:444/impactportal/account/login.jsp
+# Show other providers -> BADC/CEDA openID
+# with credentials
+user cc4idev
+pass cc4idev123!
