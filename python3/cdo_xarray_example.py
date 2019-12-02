@@ -41,9 +41,6 @@ nc_fh.close()
 # add_offset: 293.69328912771044
 # scale_factor: 0.00038463520406703495
 
-
-
-
 ds = xr.open_dataset(nc_out)   # NetCDF or OPeNDAP URL
 #ds is of type <class 'xarray.core.dataset.Dataset'>
 # select a variable to plot
