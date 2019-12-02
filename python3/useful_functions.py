@@ -121,12 +121,16 @@ def findScaleOffset(nc_fid, var, scaleKey='SCale', offsetKey='offset',
 
 
 def convertTime(cdo, nc_file_in, nc_file_out):
-    cdo.setcalendar("standard", input=nc_file_in, output=nc_file_out)
+    import os
+    nc_file_out_aux = "convertTime_aux.nc"
+    cdo.setcalendar("standard", input=nc_file_in, output=nc_file_out_aux)
+    cdo.setreftime("1850-01-01,00:00:00", input=nc_file_out_aux, output=nc_file_out)
+    os.remove(nc_file_out_aux)
 
 
 def convertTemp(cdo, nc_file_in, nc_file_out):
     import os
-    nc_file_out_aux = "convertTemp_temporal.nc"
+    nc_file_out_aux = "convertTemp_aux.nc"
     cdo.subc("273.15", input=nc_file_in, output=nc_file_out_aux)
     cdo.chunit("K,C", input=nc_file_out_aux, output=nc_file_out)
     os.remove(nc_file_out_aux)
@@ -134,7 +138,7 @@ def convertTemp(cdo, nc_file_in, nc_file_out):
 
 def convertPrecip(cdo, nc_file_in, nc_file_out):
     import os
-    nc_file_out_aux = "convertPrecip_temporal.nc"
+    nc_file_out_aux = "convertPrecip_aux.nc"
     # 1 kg of rain water spread over 1 square meter of surface is 1 mm in thickness
     # there are 60X60X24=86400 seconds in one day.
     # Therefore, 1 kg/m2/s = 86400 mm/day.
