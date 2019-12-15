@@ -14,9 +14,9 @@ cdo = Cdo()
 cdo.degub = True
 
 # nc_files_dir = "../nc_files/"
-proyect_dir = "/Volumes/SONY_FAT32/cmip5/"
-proyect_dir_converted = "../nc_files/cmip5_converted/"
-file_path_aux = "file_path_aux.nc"
+proyect_dir = "/Volumes/SONY_EXFAT/cmip5_days/"
+proyect_dir_converted = "../nc_files/cmip5_converted_days/"
+file_path_aux = "/Volumes/SONY_EXFAT/file_path_aux.nc"
 
 # loop of all models inside the cmip5 proyect dir
 for model, model_path in get_subdirs(proyect_dir):

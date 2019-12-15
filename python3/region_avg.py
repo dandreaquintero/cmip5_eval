@@ -2,24 +2,24 @@
 from cdo import *
 from useful_functions import ncdump
 from useful_functions import findScaleOffset
-from useful_functions import draw_map
 from useful_functions import get_subdirs
 from useful_functions import get_subfiles
 from useful_functions import check_and_create
 from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
 from netcdftime import utime
+import numpy as np
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
 # import xarray as xr
 import os.path
 # from mpl_toolkits.basemap import Basemap
 
 
-def plot_time_series(data_in, param_in, title_in):
+def plot_time_series(data_in, param_in, region, title_in):
     '''
     plot_time_series ...
-
-
     '''
+
     # Read time and param vars
     time = data_in.variables['time'][:]
     param = data_in.variables[param_in][:]
@@ -35,18 +35,21 @@ def plot_time_series(data_in, param_in, title_in):
     date = [cdftime.num2date(t) for t in time]
 
     # ############# A plot of field mean ##############
-    plt.figure()
-    plt.plot(date, param_scaled[:, 0, 0], c='r')
+    # plt.figure()
+    plt.figure(region+' '+param_in, figsize=(15, 6))
+    # plot(date, param_scaled[:, 0, 0], label=model) # en vez de date pongo time
+    lowess = sm.nonparametric.lowess(param_scaled[:, 0, 0], time, frac=0.05)
+    plt.plot(date, lowess[:, 1], label=model)
 
     plt.ylabel("%s (%s)" % (data_in.variables[param_in].long_name,
                             data_in.variables[param_in].units))
     plt.ticklabel_format(useOffset=False, axis='y')
     plt.xlabel("Time")
-    plt.title(title_in)
-    plt.grid()
+    # plt.title(title_in)
+    plt.title(data_in.variables[param_in].long_name + ' in the '+region+' region')
 
 
-def avg_time_series(nc_in, param_in, region, box_in, model_in, print_info=False):
+def avg_time_series(nc_in, param_in, region, box_in, model_in, print_info):
     '''
     avg_time_series ....
 
@@ -73,7 +76,7 @@ def avg_time_series(nc_in, param_in, region, box_in, model_in, print_info=False)
     print(box_in)
     print(model_in)
 
-    nc_in_filename = os.path.basename(nc_in)
+    nc_in_filename = os.path.basename(nc_in)  # ###
     nc_fldmean = os.path.splitext(nc_in_filename)[0]+'_'+region+"_fldmean.nc"
     nc_ymean = os.path.splitext(nc_in_filename)[0]+'_'+region+"_ymean.nc"
 
@@ -139,16 +142,16 @@ def avg_time_series(nc_in, param_in, region, box_in, model_in, print_info=False)
     title_ymean = ('Year and field mean for ' + param_in + ' for ' + region
                    + ' region' + ' for model ' + model_in)
 
-    plot_time_series(data_fldmean, param_in, title_fldmean)
-    plt.savefig(png_fldmean)
+    # plot_time_series(data_fldmean, param_in, region, title_fldmean)
+    # plt.savefig(png_fldmean)
 
-    plot_time_series(data_ymean, param_in, title_ymean)
-    plt.savefig(png_ymean)
+    plot_time_series(data_ymean, param_in, region, title_ymean)
+    # plt.savefig(png_ymean)
 
     data_fldmean.close()
     data_ymean.close()
 
-    plt.show()
+    #plt.show()
 
 '''
 Here starts the execution
@@ -157,35 +160,62 @@ The nc files are organized by Model and parameter
 The nc files to be used are the ones from the _standardCal folder
 The nc files will be analyzed for different regions (for now two)
 '''
-regionArray = ['Colombia', 'Alpin']
-boxCol = [281, 294, -3, 13]  # long1, long2, lat1, lat2
-boxAlpin = [5, 10, 42, 50]
-boxesArray = [boxCol, boxAlpin]
+regionArray = ['Andes', 'Alpin']
+boxAndes = [283-1, 288+1, 2.5-1, 8.5+1]  # long1, long2, lat1, lat2
+boxAlpin = [5-1, 14+1, 44.5-1, 48.5+1]
+boxesArray = [boxAndes, boxAlpin]
+paramArray = []
 
 nc_files_dir = "../nc_files/"
 proyect_dir = "cmip5_converted/"
 
+max_models = 60
 # loop the regionArray and boxesArray together
 for region, box in zip(regionArray, boxesArray):
-
+    i_models = 0
     # loop of all models inside the cmip5 proyect dir
     for model, model_path in get_subdirs(nc_files_dir+proyect_dir):
-
-        #  TODO: Call function to plot region
-
+        i_models = i_models + 1
+        if(i_models > max_models):
+            break
         # loop of all parameters inside each model
         for param, param_path in get_subdirs(model_path):
+            # create array of params
+            if param not in paramArray:
+                paramArray.append(param)
 
             # loop all files inside the param path
             for file, file_path in get_subfiles(param_path):
-
                 if file.endswith(".nc"):  # check if file is .nc_files_dir
-
                     # ploth the time series of the spatial avg
-                    avg_time_series(file_path, param, region, box, model)
+                    avg_time_series(file_path, param, region, box, model, False)
+                    break
 
+# https://matplotlib.org/examples/color/colormaps_reference.html
+colormap = plt.cm.tab20
 
-# test_file = '../nc_files/tests/test.nc'
+# after ploting all models, set colors and legend for all the figures
+for region in regionArray:
+    for param in paramArray:
+        fig = plt.figure(region+' '+param)
+        allaxes = fig.get_axes()
 
-# avg_time_series(test_file, 'pr', regionArray[0],
-#                 boxesArray[0], 'HadGEM2AO', True)
+        colors = [colormap(i) for i in np.linspace(0, 1, len(allaxes[0].lines))]
+        for i, j in enumerate(allaxes[0].lines):
+            j.set_color(colors[i])
+
+        figManager = plt.get_current_fig_manager()
+        figManager.window.showMaximized()
+
+        plt.grid(b=True, linestyle='--', linewidth=1)
+
+        # plt.legend(bbox_to_anchor=(0.5, 0., 0.5, 0.5), loc='best', fontsize='small', frameon=True)
+        # plt.legend(loc='best')
+        plt.legend(loc=(1.01, 0), fontsize='small', frameon=True)
+        # plt.subplots_adjust(right=0.7)
+        # plt.tight_layout(rect=[0,0,1,1])
+        # plt.draw()
+
+        plt.savefig('../'+region+'_'+param+'.png')
+
+plt.show()

@@ -4,3 +4,4 @@ python3/venv3/
 python2/venv2/
 __pycache__
 *.nc
+*.png
