@@ -202,3 +202,33 @@ def check_and_create(dir_in):
     else:
         print("%s Create" % dir_in)
         os.mkdir(dir_in)
+
+
+def plotRavel(file_path, param):
+    '''
+    flaten array to 1D and plot it
+    '''
+
+    from netCDF4 import Dataset
+    import numpy as np
+
+    import matplotlib.pyplot as plt
+
+    fh = Dataset(file_path, mode='r')  # file handle
+
+    pr = fh.variables[param][:, :, :]
+
+    plt.plot(np.ravel(pr))
+    plt.title(file_path)
+    plt.show()
+
+
+def moving_average(arr, win=3):
+    ''' calculates non weigthed moving moving_average of array
+    '''
+
+    import numpy as np
+
+    ret = np.cumsum(arr, dtype=float)
+    ret[win:] = ret[win:] - ret[:-win]
+    return ret[win - 1:] / win

@@ -11,23 +11,26 @@ from mpl_toolkits.basemap import Basemap
 TK_SILENCE_DEPRECATION=1
 
 #file we want to open
-my_example_nc_file = '../nc_files/examples/t2m_mon_2011-2015.nc'
+my_example_nc_file = '../nc_files/cmip5_converted_days/CanCM4/pr/pr_day_CanCM4_historical_r1i1p1_19610101-20051231.nc'
+#my_example_nc_file = '/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/cmip5_converted/BCC-CCM1.1/pr/pr_Amon_bcc-csm1-1_historical_r1i1p1_185001-201212.nc'
 
 #Dataset is a function from the netCDF4 Dataset
 #open in read-only mode
-fh = Dataset(my_example_nc_file, mode='r') #file handler
+fh = Dataset(my_example_nc_file, mode='r')  # file handler
 
-#print info and variables
+# print info and variables
 print ("="*60)
 print(fh)
 print ("="*60)
 print(fh.variables)
 print ("="*60)
 
-#put vars into numpy arrays
-lons = fh.variables['longitude'][:]
-lats = fh.variables['latitude'][:]
-t2m  = fh.variables['t2m'][:,:,:] #air temperature
+# put vars into numpy arrays
+lons = fh.variables['lon'][:]-180
+lats = fh.variables['lat'][:]
+print(lats)
+print(lons)
+pr = fh.variables['pr'][:,:,:] # air temperature
 
 #If using MERRA-2 data with multiple time indices, the following
 #line will subset the first time dimension.
@@ -35,9 +38,9 @@ t2m  = fh.variables['t2m'][:,:,:] #air temperature
 #in this dataset, there are 5 years => time dimension is 60 (from 0 to 59)
 
 #t2m(time, latitude, longitude) ;
-t2m = t2m[59,:,:]
+pr = pr[-10,:,:]
 
-t2m_units = fh.variables['t2m'].units
+pr_units = fh.variables['pr'].units
 
 #close file
 fh.close()
@@ -80,9 +83,12 @@ lat_0 = lats.mean()
  # |                       ``supported_projections`` to see a list of allowed
  # |                       values.
 
-m = Basemap(width=5000000,height=3500000,
-            resolution='l',projection='stere',\
-            lat_ts=40,lat_0=lat_0,lon_0=lon_0)     #stere=stereographic projection
+# m = Basemap(width=50000000,height=35000000,
+#             resolution='l',projection='stere',\
+#             lat_ts=40,lat_0=lat_0,lon_0=lon_0)     #stere=stereographic projection
+
+m = Basemap(projection='merc',llcrnrlat=-80,urcrnrlat=80,\
+            llcrnrlon=-180,urcrnrlon=180,lat_ts=20,resolution='c')
 
 # Because our lon and lat variables are 1D,
 # use meshgrid to create 2D arrays
@@ -91,22 +97,22 @@ lon, lat = np.meshgrid(lons, lats)
 xi, yi = m(lon, lat)
 
 # Plot Data
-cs = m.pcolor(xi,yi,np.squeeze(t2m))
+cs = m.pcolor(xi, yi, np.squeeze(pr))
 
 # Add Grid Lines
-m.drawparallels(np.arange(-80., 81., 10.), labels=[1,0,0,0], fontsize=10)
-m.drawmeridians(np.arange(-180., 181., 10.), labels=[0,0,0,1], fontsize=10)
+# m.drawparallels(np.arange(-80., 81., 10.), labels=[1,0,0,0], fontsize=10)
+# m.drawmeridians(np.arange(-180., 181., 10.), labels=[0,0,0,1], fontsize=10)
 
 # Add Coastlines, States, and Country Boundaries
 m.drawcoastlines()
-m.drawstates()
+#m.drawstates()
 m.drawcountries()
 
 # Add Colorbar
 cbar = m.colorbar(cs, location='bottom', pad="10%")
-cbar.set_label(t2m_units)
+cbar.set_label(pr_units)
 
 # Add Title
-plt.title('Temperature')
+plt.title('precipitation')
 
 plt.show()

@@ -72,71 +72,71 @@ def plot_basempap_regions(nc_in, param_in, region_in, box_in, model_in):
     cdo.sellonlatbox(box, input=nc_in, output=nc_box, options='-f nc',
                      returnCdf=True)
 
-    fh = Dataset(nc_box, 'r')
-
-    lons = fh.variables['lon'][:]
-    lats = fh.variables['lat'][:]
-    param = fh.variables[param_in][:, :, :]
-
-    # last month of last year
-    param = param[-1, :, :]
-
-    param_units = fh.variables[param_in].units
-    param_name = fh.variables[param_in].long_name
-
-    # close file
-    fh.close()
-
-    # Get some parameters for the Stereographic Projection
-    # lon_0 = lons.mean()
-    # lat_0 = lats.mean()
-
-    # m = Basemap(projection='moll',lon_0=0,resolution='l')
-    # m = Basemap(width=50000, height=10000,
-    #             resolution='l', projection='moll',\
-    #             lat_ts=40, lat_0=lat_0, lon_0=lon_0)  # stere=stereographic projection
+    # fh = Dataset(nc_box, 'r')
     #
-    # m = Basemap(projection='ortho', lat_0=5, lon_0=-60, resolution='l')
-    m = Basemap(projection='cass', llcrnrlat=box_in[2]-5, urcrnrlat=box_in[3]+5,\
-                llcrnrlon=box_in[0]-5, urcrnrlon=box_in[1]+5, resolution='h' ,\
-                lon_0=box_in[0]+3, lat_0=box_in[2]+3)
-
-    lons_dim = len(lons.shape)
-    if 2 == lons_dim:
-        lon = lons
-        lat = lats
-    elif 1 == lons_dim:
-        lon, lat = np.meshgrid(lons, lats)
-    else:
-        print("Error in lon lat array dimension: %d" % lons_dim)
-
-    xi, yi = m(lon, lat)
-
-    # Plot Data
-    cs = m.pcolor(xi, yi, np.squeeze(param), alpha=0.7)
-
-    # Add Grid Lines
-    m.drawparallels(np.arange(-80., 81., 10.), labels=[1, 0, 0, 0], fontsize=10)
-    m.drawmeridians(np.arange(-180., 181., 10.), labels=[0, 0, 0, 1], fontsize=10)
-
-    # Add Coastlines, States, and Country Boundaries
-    m.drawcoastlines()
-    # m.drawstates()
-    m.drawcountries()
-    m.shadedrelief()
-
-    # Add Colorbar
-    cbar = m.colorbar(cs, location='bottom', pad="10%")
-    cbar.set_label("%s (%s)" % (param_name, param_units))
-
-    draw_screen_poly(box_in, m)
-
-    # Add Title
-    title_region = ('Model ' + model_in + ' for region ' + region_in + ' box '+ box)
-    plt.title(title_region)
-    plt.savefig(png_box, dpi=300)
-    # plt.show()
-    plt.close()
+    # lons = fh.variables['lon'][:]
+    # lats = fh.variables['lat'][:]
+    # param = fh.variables[param_in][:, :, :]
+    #
+    # # last month of last year
+    # param = param[-1, :, :]
+    #
+    # param_units = fh.variables[param_in].units
+    # param_name = fh.variables[param_in].long_name
+    #
+    # # close file
+    # fh.close()
+    #
+    # # Get some parameters for the Stereographic Projection
+    # # lon_0 = lons.mean()
+    # # lat_0 = lats.mean()
+    #
+    # # m = Basemap(projection='moll',lon_0=0,resolution='l')
+    # # m = Basemap(width=50000, height=10000,
+    # #             resolution='l', projection='moll',\
+    # #             lat_ts=40, lat_0=lat_0, lon_0=lon_0)  # stere=stereographic projection
+    # #
+    # # m = Basemap(projection='ortho', lat_0=5, lon_0=-60, resolution='l')
+    # m = Basemap(projection='cass', llcrnrlat=box_in[2]-5, urcrnrlat=box_in[3]+5,\
+    #             llcrnrlon=box_in[0]-5, urcrnrlon=box_in[1]+5, resolution='h' ,\
+    #             lon_0=box_in[0]+3, lat_0=box_in[2]+3)
+    #
+    # lons_dim = len(lons.shape)
+    # if 2 == lons_dim:
+    #     lon = lons
+    #     lat = lats
+    # elif 1 == lons_dim:
+    #     lon, lat = np.meshgrid(lons, lats)
+    # else:
+    #     print("Error in lon lat array dimension: %d" % lons_dim)
+    #
+    # xi, yi = m(lon, lat)
+    #
+    # # Plot Data
+    # cs = m.pcolor(xi, yi, np.squeeze(param), alpha=0.7)
+    #
+    # # Add Grid Lines
+    # m.drawparallels(np.arange(-80., 81., 10.), labels=[1, 0, 0, 0], fontsize=10)
+    # m.drawmeridians(np.arange(-180., 181., 10.), labels=[0, 0, 0, 1], fontsize=10)
+    #
+    # # Add Coastlines, States, and Country Boundaries
+    # m.drawcoastlines()
+    # # m.drawstates()
+    # m.drawcountries()
+    # m.shadedrelief()
+    #
+    # # Add Colorbar
+    # cbar = m.colorbar(cs, location='bottom', pad="10%")
+    # cbar.set_label("%s (%s)" % (param_name, param_units))
+    #
+    # draw_screen_poly(box_in, m)
+    #
+    # # Add Title
+    # title_region = ('Model ' + model_in + ' for region ' + region_in + ' box '+ box)
+    # plt.title(title_region)
+    # plt.savefig(png_box, dpi=300)
+    # # plt.show()
+    # plt.close()
 
 
 # Here starts the script
@@ -146,15 +146,17 @@ boxAlpin = [5-1, 14+1, 44.5-1, 48.5+1]
 
 boxesArray = [boxAndes, boxAlpin]
 
-nc_files_dir = "../nc_files/"
-proyect_dir = "cmip5_converted/"
+# nc_files_dir = "../nc_files/"
+# proyect_dir = "cmip5_converted_days/"
+nc_files_dir = "/Users/danielaquintero/Downloads/"
+proyect_dir = "cmip5_days/"
 
 # file_path = '../nc_files/cmip5_converted_days/HadGEM2-AO_days/pr/pr_day_HadGEM2-AO_historical_r1i1p1_18600101-20051230.nc'
 # param = 'pr'
 # model = 'HadGEM2-AO'
 # plot_basempap_regions(file_path, param, regionArray[1], boxesArray[1], model)
 
-loop the regionArray and boxesArray together
+# loop the regionArray and boxesArray together
 for region, box in zip(regionArray, boxesArray):
 
     # loop of all models inside the cmip5 proyect dir
@@ -167,9 +169,14 @@ for region, box in zip(regionArray, boxesArray):
             # loop all files inside the param path
             for file, file_path in get_subfiles(param_path):
 
-                if file.endswith(".nc"):  # check if file is .nc_files_dir
+                if file.startswith("._"):
+                    print("Error, file %s starts with ._" % file)
+
+                elif file.endswith(".nc"):  # check if file is .nc_files_dir
                     try:
                         # plot the subregion
                         plot_basempap_regions(file_path, param, region, box, model)
                     except:
-                        print("ERROR: not enough values to unpack")
+                        print("plot_basempap_regions ERROR: Maybe not enough values to unpack")
+                else:
+                    print("Error, file %s not an .nc" % file)

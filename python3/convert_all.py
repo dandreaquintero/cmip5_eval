@@ -9,6 +9,8 @@ from useful_functions import convertPrecip
 from useful_functions import get_subdirs
 from useful_functions import get_subfiles
 from useful_functions import check_and_create
+from useful_functions import plotRavel
+
 # Initialize CDO
 cdo = Cdo()
 cdo.degub = True
@@ -32,25 +34,33 @@ for model, model_path in get_subdirs(proyect_dir):
         # loop all files inside the param path
         for file, file_path in get_subfiles(param_path):
 
-            if file.endswith(".nc"):  # check if file is .nc
+            if file.startswith("._"):
+                print("Error, file %s starts with ._" % file)
+
+            elif file.endswith(".nc"):  # check if file is .nc
+                plotRavel(file_path, param)
+
                 file_path_converted = file_path.replace(proyect_dir, proyect_dir_converted)
                 if os.path.exists(file_path_converted):
                     print("%s already exists", file_path_converted)
                 else:
                     print("%s Create", file_path_converted)
 
-                    convertTime(cdo, file_path, file_path_aux)
+                    try:
+                        convertTime(cdo, file_path, file_path_aux)
 
-                    if param == 'tas':
-                        print("convert tas")
-                        convertTemp(cdo, file_path_aux, file_path_converted)
-                    elif param == 'pr':
-                        print("convert pr")
-                        convertPrecip(cdo, file_path_aux, file_path_converted)
-                    else:
-                        print("Error, param %s not recognized" % param)
+                        if param == 'tas':
+                            print("convert tas")
+                            convertTemp(cdo, file_path_aux, file_path_converted)
+                        elif param == 'pr':
+                            print("convert pr")
+                            convertPrecip(cdo, file_path_aux, file_path_converted)
+                        else:
+                            print("Error, param %s not recognized" % param)
+                    except:
+                        print("Some error in conversions")
 
-                    fh = Dataset(file_path_converted, 'r')
+                    # fh = Dataset(file_path_converted, 'r')
             else:
                 print("Error, file %s not an .nc" % file)
 

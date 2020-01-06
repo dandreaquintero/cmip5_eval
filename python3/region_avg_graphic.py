@@ -1,18 +1,19 @@
-#import datetime as dt  # Python standard library datetime  module
+# import datetime as dt  # Python standard library datetime  module
 from cdo import *
 from useful_functions import ncdump
 from useful_functions import findScaleOffset
 from useful_functions import get_subdirs
 from useful_functions import get_subfiles
 from useful_functions import check_and_create
+from useful_functions import moving_average
 from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
 from netcdftime import utime
 import numpy as np
+# import pandas as pd
 import matplotlib.pyplot as plt
-import statsmodels.api as sm
-# import xarray as xr
+# import statsmodels.api as sm
+# from dateutil.relativedelta import relativedelta
 import os.path
-# from mpl_toolkits.basemap import Basemap
 
 
 def plot_time_series(data_in, param_in, region, title_in):
@@ -37,15 +38,18 @@ def plot_time_series(data_in, param_in, region, title_in):
     # ############# A plot of field mean ##############
     # plt.figure()
     plt.figure(region+' '+param_in, figsize=(15, 6))
-    # plot(date, param_scaled[:, 0, 0], label=model) # en vez de date pongo time
-    lowess = sm.nonparametric.lowess(param_scaled[:, 0, 0], time, frac=0.05)
-    plt.plot(date, lowess[:, 1], label=model)
+    plt.plot(date, param_scaled[:, 0, 0], label=model)   # Plot original data
+    # lowess = sm.nonparametric.lowess(param_scaled[:, 0, 0], time, frac=0.06)  # Filter lowess
+    # plt.plot(date, lowess[:, 1], label=model)
+
+    window = 10  # date [x:-y], where x+y = window - 1
+    param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
+    plt.plot(date[5:-4], param_scaled_smoothed, label=model+'_smoothed')  # Plot data smoothed
 
     plt.ylabel("%s (%s)" % (data_in.variables[param_in].long_name,
                             data_in.variables[param_in].units))
     plt.ticklabel_format(useOffset=False, axis='y')
     plt.xlabel("Time")
-    # plt.title(title_in)
     plt.title(data_in.variables[param_in].long_name + ' in the '+region+' region')
 
 
@@ -136,28 +140,24 @@ def avg_time_series(nc_in, param_in, region, box_in, model_in, print_info):
         print("number of data points: %d" % len(param_year))
         print("-"*80)
 
-    title_fldmean = ('Field mean for ' + param_in + ' for ' + region + ' region'
-                     + ' for model ' + model_in)
+    # title_fldmean = ('Field mean for ' + param_in + ' for ' + region + ' region'
+    #                  + ' for model ' + model_in)
 
     title_ymean = ('Year and field mean for ' + param_in + ' for ' + region
                    + ' region' + ' for model ' + model_in)
 
     # plot_time_series(data_fldmean, param_in, region, title_fldmean)
-    # plt.savefig(png_fldmean)
-
     plot_time_series(data_ymean, param_in, region, title_ymean)
-    # plt.savefig(png_ymean)
 
     data_fldmean.close()
     data_ymean.close()
 
-    #plt.show()
 
 '''
 Here starts the execution
 Feed the main function (avg_time_series) all the .nc files we want to analyze
 The nc files are organized by Model and parameter
-The nc files to be used are the ones from the _standardCal folder
+The nc files to be used are the ones from the _converted folder
 The nc files will be analyzed for different regions (for now two)
 '''
 regionArray = ['Andes', 'Alpin']
@@ -169,7 +169,7 @@ paramArray = []
 nc_files_dir = "../nc_files/"
 proyect_dir = "cmip5_converted/"
 
-max_models = 60
+max_models = 15
 # loop the regionArray and boxesArray together
 for region, box in zip(regionArray, boxesArray):
     i_models = 0
@@ -201,8 +201,10 @@ for region in regionArray:
         allaxes = fig.get_axes()
 
         colors = [colormap(i) for i in np.linspace(0, 1, len(allaxes[0].lines))]
+        linestyles = ['-', '-.']
         for i, j in enumerate(allaxes[0].lines):
             j.set_color(colors[i])
+            j.set_linestyle(linestyles[i % len(linestyles)])
 
         figManager = plt.get_current_fig_manager()
         figManager.window.showMaximized()
@@ -213,9 +215,9 @@ for region in regionArray:
         # plt.legend(loc='best')
         plt.legend(loc=(1.01, 0), fontsize='small', frameon=True)
         # plt.subplots_adjust(right=0.7)
-        # plt.tight_layout(rect=[0,0,1,1])
+        plt.tight_layout(rect=[0,0,1,1])
         # plt.draw()
 
-        plt.savefig('../'+region+'_'+param+'.png')
+        plt.savefig('../'+region+'_'+param+'.png', dpi=400)
 
 plt.show()
