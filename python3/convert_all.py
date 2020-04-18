@@ -16,12 +16,19 @@ cdo = Cdo()
 cdo.degub = True
 
 # nc_files_dir = "../nc_files/"
-proyect_dir = "/Volumes/SONY_EXFAT/cmip5_days/"
-proyect_dir_converted = "../nc_files/cmip5_converted_days/"
-file_path_aux = "/Volumes/SONY_EXFAT/file_path_aux.nc"
+proyect_dir = "/Volumes/SONY_FAT32/cmip5/"
+#proyect_dir = "/Users/danielaquintero/Downloads/"
+proyect_dir_converted = "../nc_files/cmip5_converted/"
+#file_path_aux = "/Users/danielaquintero/Downloads/file_path_aux.nc"
+file_path_aux = "/Volumes/SONY_FAT32/file_path_aux.nc"
 
+max_models = 50
+i_models = 0
 # loop of all models inside the cmip5 proyect dir
 for model, model_path in get_subdirs(proyect_dir):
+    i_models = i_models + 1
+    if(i_models > max_models):
+        break
 
     model_path_converted = model_path.replace(proyect_dir, proyect_dir_converted)
     check_and_create(model_path_converted)
@@ -35,16 +42,14 @@ for model, model_path in get_subdirs(proyect_dir):
         for file, file_path in get_subfiles(param_path):
 
             if file.startswith("._"):
-                print("Error, file %s starts with ._" % file)
-
+                pass  # does nothing
+                # print("Starts with ._" , file)
             elif file.endswith(".nc"):  # check if file is .nc
-                plotRavel(file_path, param)
-
                 file_path_converted = file_path.replace(proyect_dir, proyect_dir_converted)
                 if os.path.exists(file_path_converted):
-                    print("%s already exists", file_path_converted)
+                    print("Aready exists", file_path_converted)
                 else:
-                    print("%s Create", file_path_converted)
+                    print("Create", file_path_converted)
 
                     try:
                         convertTime(cdo, file_path, file_path_aux)
@@ -56,12 +61,15 @@ for model, model_path in get_subdirs(proyect_dir):
                             print("convert pr")
                             convertPrecip(cdo, file_path_aux, file_path_converted)
                         else:
-                            print("Error, param %s not recognized" % param)
+                            print("*** Param not recognized ***", param)
                     except:
-                        print("Some error in conversions")
+                        print("\n\n************************+*")
+                        print("**** Conversion error ****")
+                        print("************************+*\n\n")
 
                     # fh = Dataset(file_path_converted, 'r')
             else:
-                print("Error, file %s not an .nc" % file)
+                pass  # does nothing
+                # print("Not an .nc",, file)
 
 os.remove(file_path_aux)

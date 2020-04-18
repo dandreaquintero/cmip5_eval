@@ -134,7 +134,7 @@ def pr_time_series(nc_in, param_in, model_in, print_info=False):
 
     plot_time_series(data_fld_max, param_in, title_pmax)
     # plt.savefig(png_pmax_fldmax)
-    plt.savefig('../'+region+'_'+param+'.png', dpi=300)
+    plt.savefig('../'+region+'_'+param+'.png', dpi=300)   # ../ queda guardado en el directorio anterior en donde esta
     data_pmax.close()
     data_fld_max.close()
     plt.show()

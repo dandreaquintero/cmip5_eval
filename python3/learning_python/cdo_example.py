@@ -21,6 +21,8 @@ fh_orig = Dataset(nc_in, mode='r')  # file handler
 lons = fh_orig.variables['longitude'][:]
 lats = fh_orig.variables['latitude'][:]
 
+fh_orig.close()
+
 # print(type(lons))<class 'numpy.ma.core.MaskedArray'>
 # print(type(lats))
 

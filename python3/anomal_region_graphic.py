@@ -1,4 +1,4 @@
-#import datetime as dt  # Python standard library datetime  module
+import datetime as dt  # Python standard library datetime  module
 from cdo import *
 from useful_functions import ncdump
 from useful_functions import findScaleOffset
@@ -35,17 +35,17 @@ def plot_time_series(data_in, param_in, region):
     # ############# A plot of Maximum precipitation ##############
 
     plt.figure(region+' '+param_in, figsize=(15, 6))
-    plt.plot(date, param_scaled[:, 0, 0], label=model)
+    # plt.plot(date, param_scaled[:, 0, 0], label=model)
 
     window = 10  # date [x:-y], where x+y = window - 1
     param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
-    plt.plot(date[5:-4], param_scaled_smoothed, label=model+'_smoothed')
+    plt.plot(date[5:-4], param_scaled_smoothed, label=model+'_smoothed')  ##
 
-    plt.ylabel("%s (%s)" % (data_in.variables[param_in].long_name,
-                            data_in.variables[param_in].units))
+    plt.ylabel("%s Anomaly (%s)" % (data_in.variables[param_in].long_name,
+                                    data_in.variables[param_in].units))
     plt.ticklabel_format(useOffset=False, axis='y')
     plt.xlabel("Time")
-    plt.title('Maximum daily precipitation for ' + region + ' region')
+    plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly '+'in the ' + region + ' region')
 
 
 '''
@@ -59,17 +59,17 @@ regionArray = ['Andes', 'Alpin']
 paramArray = []
 
 nc_files_dir = "../nc_files/"
-proyect_dir = "cmip5_converted_days/"
+proyect_dir = "cmip5_converted/"
 
-max_models = 10
+max_models = 50
 # loop the regionArray and boxesArray together
 for region in regionArray:
-    i_models = 0
+    i_model = 0
 
     # loop of all models inside the cmip5 proyect dir
     for model, model_path in get_subdirs(nc_files_dir+proyect_dir):
-        i_models = i_models + 1
-        if(i_models > max_models):
+        i_model = i_model + 1
+        if(i_model > max_models):
             break
         # loop of all parameters inside each model
         for param, param_path in get_subdirs(model_path):
@@ -77,16 +77,14 @@ for region in regionArray:
             if param not in paramArray:
                 paramArray.append(param)
 
-            for subparam, subparam_path in get_subdirs(param_path):
-                # loop all files inside the param path
-                for file, file_path in get_subfiles(subparam_path):
-                    if file.endswith("pmax_fldmax.nc"):  # check if file is .nc_files_dir
-                        if region in file:
-
-                            # ploth the time series of the spatial avg
-                            data_prmax = Dataset(file_path, mode='r')
-                            plot_time_series(data_prmax, param, region)
-                            data_prmax.close()
+            # loop all files inside the param path
+            for file, file_path in get_subfiles(param_path+'/avg/'):
+                if file.endswith("anomal.nc"):  # check if file is .nc_files_dir
+                    if region in file:
+                        # ploth the time series of the spatial avg
+                        data_anom = Dataset(file_path, mode='r')
+                        plot_time_series(data_anom, param, region)
+                        data_anom.close()
 
 # https://matplotlib.org/examples/color/colormaps_reference.html
 colormap = plt.cm.tab20
@@ -98,7 +96,8 @@ for region in regionArray:
         allaxes = fig.get_axes()
 
         colors = [colormap(i) for i in np.linspace(0, 1, len(allaxes[0].lines))]
-        linestyles = ['-', '-.']
+        linestyles = ['-', '--', ':']
+        #marker = ['o', 'x', 'v']
         for i, j in enumerate(allaxes[0].lines):
             j.set_color(colors[i])
             j.set_linestyle(linestyles[i % len(linestyles)])
@@ -110,9 +109,16 @@ for region in regionArray:
 
         # plt.legend(bbox_to_anchor=(0.5, 0., 0.5, 0.5), loc='best', fontsize='small', frameon=True)
         # plt.legend(loc='best')
-        plt.legend(loc=(1.01, 0), fontsize='small', frameon=True)
+        # plt.legend(loc=(1.01, 0), fontsize='small', frameon=True)
+        plt.legend(loc=(0, 0), fontsize=7, frameon=True, ncol=7, bbox_to_anchor=(0, -0.45)) #Legend for smoothed
         # plt.subplots_adjust(right=0.7)
         plt.tight_layout(rect=[0, 0, 1, 1])
 
-        plt.savefig('../'+region+'_'+param+'_max.png', dpi=600)
+        # add horizontal line at y=0
+        plt.axhline(y=0, color='k')
+
+        # highligth 1961 to 1990 range
+        plt.axvspan(dt.datetime(1961, 1, 1), dt.datetime(1990, 12, 30), color='b', alpha=0.1)
+
+        plt.savefig('../'+region+'_'+param+'_anomal_smooth.png', dpi=600)
 plt.show()

@@ -38,21 +38,22 @@ def plot_time_series(data_in, param_in, region):
     # ############# A plot of field mean ##############
 
     plt.figure(region+' '+param_in, figsize=(15, 6))
-    plt.plot(date, param_scaled[:, 0, 0], label=model)   # Plot original data
+    # plt.plot(date, param_scaled[:, 0, 0], label=model)   # Plot original data
     # lowess = sm.nonparametric.lowess(param_scaled[:, 0, 0], time, frac=0.06)  # Filter lowess
     # plt.plot(date, lowess[:, 1], label=model)
 
-    # window = 10  # date [x:-y], where x+y = window - 1
-    # param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
-    # plt.plot(date[5:-4], param_scaled_smoothed, label=model+'_smoothed')  # Plot data smoothed
+    window = 10  # date [x:-y], where x+y = window - 1
+    param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
+    plt.plot(date[5:-4], param_scaled_smoothed, label=model+'_smoothed')  # Plot data smoothed
 
     plt.ylabel("%s (%s)" % (data_in.variables[param_in].long_name,
                             data_in.variables[param_in].units))
     plt.ticklabel_format(useOffset=False, axis='y')
     plt.xlabel("Time")
-    plt.title('Annual Average '+data_in.variables[param_in].long_name
-              + ' in the '+region+' region ')
-
+    #plt.title('Annual Average '+data_in.variables[param_in].long_name
+    #          + ' in the '+region+' region ', fontweight='bold')
+    plt.title('Annual Average '+data_in.variables[param_in].long_name      # title plot smoothed
+              + ' in the '+region+' region smoothed', fontweight='bold')
 
 def avg_time_series(nc_in, param_in, region, box_in, model_in, print_info):
     '''
@@ -141,7 +142,7 @@ def avg_time_series(nc_in, param_in, region, box_in, model_in, print_info):
         print("number of data points: %d" % len(param_year))
         print("-"*80)
 
-    #title_fldmean = ('Field mean for ' + param_in + ' for ' + region + ' region'
+    # title_fldmean = ('Field mean for ' + param_in + ' for ' + region + ' region'
 #                  + ' for model ' + model_in)
 
     # title_ymean = ('Year and field mean for ' + param_in + ' for ' + region
@@ -149,7 +150,7 @@ def avg_time_series(nc_in, param_in, region, box_in, model_in, print_info):
 
     # plot_time_series (data_fldmeanmean, param_in, region, title_fldmean)
     plot_time_series(data_ymean, param_in, region)
-    #plt.savefig(png_ymean, dpi=300)
+    # plt.savefig(png_ymean, dpi=300)
 
     data_fldmean.close()
     data_ymean.close()
@@ -171,7 +172,7 @@ paramArray = []
 nc_files_dir = "../nc_files/"
 proyect_dir = "cmip5_converted/"
 
-max_models = 35
+max_models = 50
 # loop the regionArray and boxesArray together
 for region, box in zip(regionArray, boxesArray):
     i_models = 0
@@ -203,7 +204,7 @@ for region in regionArray:
         allaxes = fig.get_axes()
 
         colors = [colormap(i) for i in np.linspace(0, 1, len(allaxes[0].lines))]
-        linestyles = ['-']
+        linestyles = ['-', '--', ':']
         for i, j in enumerate(allaxes[0].lines):
             j.set_color(colors[i])
             j.set_linestyle(linestyles[i % len(linestyles)])
@@ -215,9 +216,10 @@ for region in regionArray:
 
         # plt.legend(bbox_to_anchor=(0.5, 0., 0.5, 0.5), loc='best', fontsize='small', frameon=True)
         # plt.legend(loc='best')
-        plt.legend(loc=(1.01, 0), fontsize='small', frameon=True)
+        # plt.legend(loc=(0, 0), fontsize=7, frameon=True, ncol=11, bbox_to_anchor=(0, -0.3))  # loc=(1.01, 0)
+        plt.legend(loc=(0, 0), fontsize=7, frameon=True, ncol=7, bbox_to_anchor=(0, -0.5)) #Legend for smoothed
         # plt.subplots_adjust(right=0.7)
         plt.tight_layout(rect=[0, 0, 1, 1])
 
-        plt.savefig('../'+region+'_'+param+'_annual_avg.png', dpi=400)
+        plt.savefig('../'+region+'_'+param+'_annual_avg_smooth.png', dpi=400)
 plt.show()

@@ -12,6 +12,8 @@ my_example_nc_file = '/Users/danielaquintero/Downloads/cmip5_days/bcc-csm1-1-m/p
 fh = Dataset(my_example_nc_file, mode='r')  # file handler
 pr = fh.variables['pr'][:, :, :]  # air temperature
 
+fh.close()
+
 pr_flat = np.ravel(pr)
 plt.plot(pr_flat[3000000:-1])
 plt.show()

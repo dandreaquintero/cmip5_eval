@@ -26,21 +26,22 @@ cd python2
 virtualenv --python=python2 venv2
 
 # Activate virtual env with:
-source venv3/bin/activate
-source venv2/bin/activate
+source venv3/bin/activate  # source deactivate: to exist of the environment
+source venv2/bin/activate  # to remove an envirm: brew env remove -n venv3
 
 #check python and pip are the venv3/venv2 versions with
 python --version
 pip --version
 
 # Installed Required pacakges inside virtual env
+pip install numpy
 pip install xarray dask netCDF4 bottleneck  #for parallel computing with dask
 pip install matplotlib   #for plotting
 pip install seaborn      #for better colour palet
 pip install https://github.com/matplotlib/basemap/archive/master.zip #old version of cartopy
 pip install cython
 pip uninstall shapely; pip install --no-binary :all: shapely #otherwise cartopy crashes
-pip install scipy
+pip install scipy        #scientific function, integraters,interpolations
 #pip install cartopy #fails because version issue of proj6
 
 #https://github.com/SciTools/cartopy/pull/1289/commits

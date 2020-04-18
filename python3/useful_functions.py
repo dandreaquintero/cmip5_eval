@@ -198,9 +198,10 @@ def check_and_create(dir_in):
     '''
     import os
     if os.path.exists(dir_in):
-        print("%s Dir already exists" % dir_in)
+        pass  # does nothing
+        # print("Dir already exists", dir_in)
     else:
-        print("%s Create" % dir_in)
+        print("Create dir", dir_in)
         os.mkdir(dir_in)
 
 
@@ -217,6 +218,7 @@ def plotRavel(file_path, param):
     fh = Dataset(file_path, mode='r')  # file handle
 
     pr = fh.variables[param][:, :, :]
+    fh.close()
 
     plt.plot(np.ravel(pr))
     plt.title(file_path)
