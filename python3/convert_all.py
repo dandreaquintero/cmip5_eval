@@ -16,11 +16,11 @@ cdo = Cdo()
 cdo.degub = True
 
 # nc_files_dir = "../nc_files/"
-proyect_dir = "/Volumes/SONY_FAT32/cmip5/"
-#proyect_dir = "/Users/danielaquintero/Downloads/"
-proyect_dir_converted = "../nc_files/cmip5_converted/"
-#file_path_aux = "/Users/danielaquintero/Downloads/file_path_aux.nc"
-file_path_aux = "/Volumes/SONY_FAT32/file_path_aux.nc"
+proyect_dir = "/Volumes/wd_tesis/RCP8_5/"
+# proyect_dir = "/Users/danielaquintero/Downloads/"
+# proyect_dir_converted = "../nc_files/cmip5_historical_converted/"
+proyect_dir_converted = "../nc_files/RCP8_5_converted/"
+file_path_aux = "/Volumes/wd_tesis/file_path_aux.nc"
 
 max_models = 50
 i_models = 0

@@ -42,7 +42,7 @@ The nc files to be used are the ones from the _converted folder
 The nc files will be analyzed for different regions (for now two)
 '''
 nc_files_dir = "../nc_files/"
-proyect_dir = "cmip5_converted/"
+proyect_dir = "cmip5_historical_converted/"
 
 # loop of all models inside the cmip5 proyect dir
 for model, model_path in get_subdirs(nc_files_dir+proyect_dir):

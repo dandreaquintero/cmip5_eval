@@ -3,6 +3,7 @@ from netCDF4 import Dataset
 import numpy as np
 from matplotlib.patches import Polygon
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 
@@ -61,7 +62,7 @@ def plot_basempap_regions(nc_in, param_in, region_in, box_in, model_in):
     cdo = Cdo()
     cdo.degub = True
 
-    box = "%d,%d,%d,%d" % (box_in[0], box_in[1], box_in[2], box_in[3])  # box of Cdo
+    box = "%d,%d,%d,%d" % (box_in[0]-7, box_in[1]+8, box_in[2]-10, box_in[3]+7)  # box of Cdo
 
     print(box)
     print(nc_in)
@@ -76,10 +77,10 @@ def plot_basempap_regions(nc_in, param_in, region_in, box_in, model_in):
 
     lons = fh.variables['lon'][:]
     lats = fh.variables['lat'][:]
-    param = fh.variables[param_in][:, :, :]
+    param = fh.variables[param_in][:, :]
 
     # last month of last year
-    param = param[-1, :, :]
+    #param = param[-1, :, :]
 
     param_units = fh.variables[param_in].units
     param_name = fh.variables[param_in].long_name
@@ -97,8 +98,8 @@ def plot_basempap_regions(nc_in, param_in, region_in, box_in, model_in):
     #             lat_ts=40, lat_0=lat_0, lon_0=lon_0)  # stere=stereographic projection
     #
     # m = Basemap(projection='ortho', lat_0=5, lon_0=-60, resolution='l')
-    m = Basemap(projection='cass', llcrnrlat=box_in[2]-5, urcrnrlat=box_in[3]+5,\
-                llcrnrlon=box_in[0]-5, urcrnrlon=box_in[1]+5, resolution='h' ,\
+    m = Basemap(projection='cass', llcrnrlat=box_in[2]-6, urcrnrlat=box_in[3]+4,\
+                llcrnrlon=box_in[0]-4, urcrnrlon=box_in[1]+6, resolution='h' ,\
                 lon_0=box_in[0]+3, lat_0=box_in[2]+3)
 
     lons_dim = len(lons.shape)
@@ -113,7 +114,25 @@ def plot_basempap_regions(nc_in, param_in, region_in, box_in, model_in):
     xi, yi = m(lon, lat)
 
     # Plot Data
-    cs = m.pcolor(xi, yi, np.squeeze(param), alpha=0.7)
+    # cmap = plt.get_cmap('terrain')''
+    cmap = mpl.colors.ListedColormap(['royalblue', 'darkgreen', 'green','forestgreen', 'yellowgreen',
+                                      'khaki', 'wheat', 'burlywood','tan', 'goldenrod', 'darkgoldenrod',
+                                      'sienna', 'saddlebrown', 'whitesmoke'])
+    cmap.set_over('white')
+    cmap.set_under('blue')
+
+    bounds = [0, 50, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800]  # 11 colors
+    norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+    # cb3 = mpl.colorbar.ColorbarBase(ax, cmap=cmap,
+    #                                 norm=norm,
+    #                                 boundaries=[-10] + bounds + [10],
+    #                                 extend='both',
+    #                                 extendfrac='auto',
+    #                                 ticks=bounds,
+    #                                 spacing='uniform',
+    #                                 orientation='horizontal')
+
+    cs = m.pcolor(xi, yi, np.squeeze(param), alpha=0.7, cmap=cmap, norm=norm)
 
     # Add Grid Lines
     m.drawparallels(np.arange(-80., 81., 10.), labels=[1, 0, 0, 0], fontsize=10)
@@ -141,18 +160,13 @@ def plot_basempap_regions(nc_in, param_in, region_in, box_in, model_in):
 
 # Here starts the script
 regionArray = ['Andes', 'Alpin']
-boxAndes = [283-1, 288+1, 2.5-1, 8.5+1]  # long1, long2, lat1, lat2
+boxAndes = [283-1, 288+1, 0, 8.5+1]  # long1, long2, lat1, lat2
 boxAlpin = [5-1, 14+1, 44.5-1, 48.5+1]
 
 boxesArray = [boxAndes, boxAlpin]
 
-nc_files_dir = "../nc_files/"
-proyect_dir = "cmip5_historical_converted/"
-
-# file_path = '../nc_files/cmip5_converted_days/HadGEM2-AO_days/pr/pr_day_HadGEM2-AO_historical_r1i1p1_18600101-20051230.nc'
-# param = 'pr'
-# model = 'HadGEM2-AO'
-# plot_basempap_regions(file_path, param, regionArray[1], boxesArray[1], model)
+nc_files_dir = "/Users/danielaquintero/Downloads/"
+proyect_dir = "nctest/"
 
 # loop the regionArray and boxesArray together
 for region, box in zip(regionArray, boxesArray):
@@ -171,10 +185,10 @@ for region, box in zip(regionArray, boxesArray):
                     print("Error, file %s starts with ._" % file)
 
                 elif file.endswith(".nc"):  # check if file is .nc_files_dir
-                    try:
-                        # plot the subregion
-                        plot_basempap_regions(file_path, param, region, box, model)
-                    except:
-                        print("plot_basempap_regions ERROR: Maybe not enough values to unpack")
+
+                    # plot the subregion
+                    plot_basempap_regions(file_path, param, region, box, model)
+
+                    # print("plot_basempap_regions ERROR: Maybe not enough values to unpack")
                 else:
                     print("Error, file %s not an .nc" % file)

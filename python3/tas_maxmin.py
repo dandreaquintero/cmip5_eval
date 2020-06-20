@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import os.path
 
 
-def plot_time_series(data_in, param_in, title_in):
+def plot_time_series(data_in, param_in):
     '''
     plot_time_series ...
 
@@ -38,11 +38,11 @@ def plot_time_series(data_in, param_in, title_in):
                             data_in.variables[param_in].units))
     plt.ticklabel_format(useOffset=False, axis='y')
     plt.xlabel("Time")
-    plt.title('Maximum '+data_in.variables[param_in].long_name + ' in the '+region+' region')
+    plt.title('Maximum '+data_in.variables[param_in].long_name + ' in the '+region+' region for each year')
     plt.grid()
 
 
-def pr_time_series(nc_in, param_in, model_in, print_info=False):
+def max_time_series(nc_in, param_in, model_in, print_info=False):
     '''
     avg_time_series ....
 
@@ -67,22 +67,26 @@ def pr_time_series(nc_in, param_in, model_in, print_info=False):
     print(param_in)
     print(model_in)
 
-    nc_in_filename = os.path.basename(nc_in)  # ###
-    nc_pmax = os.path.splitext(nc_in_filename)[0]+"_pmax.nc"
-    nc_pmax_fldmax = os.path.splitext(nc_in_filename)[0]+"_pmax_fldmax.nc"
+    # replace .nc with _time....nc
+    nc_in_filename = os.path.basename(nc_in)  #
+    nc_timemax = os.path.splitext(nc_in_filename)[0]+"_timemax_annual.nc"
+    nc_timemax_fldmax = os.path.splitext(nc_in_filename)[0]+"_timemax_fldmax_annual.nc"
 
-    png_pmax = os.path.splitext(nc_in_filename)[0]+"_pmax.png"
-    png_pmax_fldmax = os.path.splitext(nc_in_filename)[0]+"_pmax_fldmax.png"
+    # replace .nc with time_.... png
+    png_timemax = os.path.splitext(nc_in_filename)[0]+"_timemax_annual.png"
+    png_timemax_fldmax = os.path.splitext(nc_in_filename)[0]+"_timemax_fldmax_annual.png"
 
-    out_dir = nc_in.replace(nc_in_filename, 'pmax')
+    # create output dir and add dirname to .nc and .png file names
+    out_dir = nc_in.replace(nc_in_filename, 'timemax_fldmax')  # folder where files will be saved
     check_and_create(out_dir)
-    nc_pmax = nc_in.replace(nc_in_filename, 'pmax/'+nc_pmax)
-    nc_pmax_fldmax = nc_in.replace(nc_in_filename, 'pmax/'+nc_pmax_fldmax)
+    nc_timemax = nc_in.replace(nc_in_filename, 'timemax_fldmax/'+nc_timemax)
+    nc_timemax_fldmax = nc_in.replace(nc_in_filename, 'timemax_fldmax/'+nc_timemax_fldmax)
 
-    png_pmax = nc_in.replace(nc_in_filename, 'pmax/'+png_pmax)
-    png_pmax_fldmax = nc_in.replace(nc_in_filename, 'pmax/'+png_pmax_fldmax)
+    png_timemax = nc_in.replace(nc_in_filename, 'timemax_fldmax/'+png_timemax)
+    png_timemax_fldmax = nc_in.replace(nc_in_filename, 'timemax_fldmax/'+png_timemax_fldmax)
 
-    print(nc_pmax_fldmax)
+    print(nc_timemax_fldmax)
+    print(png_timemax_fldmax)
     print("-"*80)
 
     # Initialize CDO
@@ -94,49 +98,46 @@ def pr_time_series(nc_in, param_in, model_in, print_info=False):
         ncdump(data_in, True)
         print("-"*80)
     data_in.close()
-
     # box = "-sellonlatbox,%d,%d,%d,%d" % (box_in[0], box_in[1], box_in[2], box_in[3])
 
     # Create nc files for precipitation max for year.
-    if os.path.exists(nc_pmax):
-        print("%s already exists", nc_pmax)
+    if os.path.exists(nc_timemax):
+        print("%s already exists", nc_timemax)
     else:
-        print("%s Create", nc_pmax)
+        print("%s Create", nc_timemax)
     #   cdo.yearmax(input=box+" "+nc_in, output=nc_pmax, options='-f nc', returnCdf=True)
-        cdo.yearmax(input=nc_in, output=nc_pmax, options='-f nc', returnCdf=True)
+        cdo.yearmax(input=nc_in, output=nc_timemax, options='-f nc', returnCdf=True)
 
-    if os.path.exists(nc_pmax_fldmax):
-        print("%s already exists", nc_pmax_fldmax)
+    if os.path.exists(nc_timemax_fldmax):
+        print("%s already exists", nc_timemax_fldmax)
 
     else:
-        print("%s Create", nc_pmax_fldmax)
-        cdo.fldmax(input=nc_pmax, output=nc_pmax_fldmax, options='-f nc', returnCdf=True)
+        print("%s Create", nc_timemax_fldmax)
+        cdo.fldmax(input=nc_timemax, output=nc_timemax_fldmax, options='-f nc', returnCdf=True)
 
     # Create file handlers for field mean and year mean
-    data_pmax = Dataset(nc_pmax, mode='r')
-    data_fld_max = Dataset(nc_pmax_fldmax, mode='r')
+    data_timemax = Dataset(nc_timemax, mode='r')
+    data_timemax_fldmax = Dataset(nc_timemax_fldmax, mode='r')
 
-    # Check pmax and fldmax are ok
+    # Check timemax and fldmax are ok
     if print_info:
-        ncdump(data_pmax, True)
+        ncdump(data_timemax, True)
 
     if print_info:
-        ncdump(data_fld_max, True)
+        ncdump(data_timemax_fldmax, True)
 
-    # Check pmax temporal is ok
+    # Check timemax temporal is ok
     if print_info:
-        ncdump(data_pmax, True)
-        param_year = data_pmax.variables[param_in][:]
+        ncdump(data_timemax, True)
+        param_year = data_timemax.variables[param_in][:]
         print("number of data points: %d" % len(param_year))
         print("-"*80)
 
-    title_pmax = ('Precipitation max for ' + nc_in_filename)
-
-    plot_time_series(data_fld_max, param_in, title_pmax)
+    plot_time_series(data_timemax_fldmax, param_in)
     # plt.savefig(png_pmax_fldmax)
-    plt.savefig('../'+region+'_'+param+'.png', dpi=300)   # ../ queda guardado en el directorio anterior en donde esta
-    data_pmax.close()
-    data_fld_max.close()
+    plt.savefig(png_timemax_fldmax, dpi=100)   # ../ queda guardado en el directorio anterior en donde esta
+    data_timemax.close()
+    data_timemax_fldmax.close()
     plt.show()
 
 
@@ -147,19 +148,20 @@ The nc files are organized by Model and parameter
 The nc files to be used are the ones from the _standardCal folder
 The nc files will be analyzed for different regions (for now two)
 '''
-# regionArray = ['Andes', 'Alpin']
-# boxAndes = [283-1, 288+1, 2.5-1, 8.5+1]  # long1, long2, lat1, lat2
-# boxAlpin = [5-1, 14+1, 44.5-1, 48.5+1]
-# boxesArray = [boxAndes, boxAlpin]
 
-nc_files_dir = "../nc_files/"
-proyect_dir = "cmip5_converted_days/"
+
+model_array = ['CESM1-CAM5']
+nc_files_dir = "/Volumes/wd_tesis/"
+proyect_dir = "tasmin_tasmax_historical_converted/"
 
 # loop the regionArray and boxesArray together
 # for region, box in zip(regionArray, boxesArray):
 
 # loop of all models inside the cmip5 proyect dir
 for model, model_path in get_subdirs(nc_files_dir+proyect_dir):
+    if model not in model_array:  #
+        continue                 #
+    print(model)
 
     # loop of all parameters inside each model
     for param, param_path in get_subdirs(model_path):
@@ -173,10 +175,5 @@ for model, model_path in get_subdirs(nc_files_dir+proyect_dir):
                 elif file.endswith(".nc"):  # check if file is .nc_files_dir
 
                     # ploth the time series of the spatial avg
-                    pr_time_series(file_path, param, model, False)
+                    max_time_series(file_path, param, model, False)
                     # pr_time_series(file_path, param, region, box, model)
-
-# test_file = '../nc_files/cmip5_converted_days/HadGEM2-AO_days/pr/pr_day_HadGEM2-AO_historical_r1i1p1_18600101-20051230_Alpin_pmax.nc'
-
-# pr_time_series(test_file, 'pr', regionArray[0],
-#                boxesArray[0], 'HadGEM2-AO_days', True)

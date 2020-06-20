@@ -1,4 +1,3 @@
-# import datetime as dt  # Python standard library datetime  module
 from cdo import *
 from useful_functions import ncdump
 from useful_functions import findScaleOffset
@@ -10,16 +9,13 @@ from useful_functions import reorderLegend
 from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
 from netcdftime import utime
 import numpy as np
-# import pandas as pd
 import matplotlib.pyplot as plt
-# import statsmodels.api as sm
-# from dateutil.relativedelta import relativedelta
 import os.path
 
 
 def plot_time_series(data_in, param_in, region):
     '''
-    plot_time_series ...
+    plot_time_series of RCP4.5 scenario ...
     '''
 
     # Read time and param vars
@@ -36,28 +32,22 @@ def plot_time_series(data_in, param_in, region):
     cdftime = utime(time_uni, calendar=time_cal)
     date = [cdftime.num2date(t) for t in time]
 
-    # ############# A plot of field mean ##############
-
     plt.figure(region+' '+param_in, figsize=(15, 6))
-    # ########## PLOT ORIGINAL DATA ############
-    plt.plot(date, param_scaled[:, 0, 0], label=model)
-    # lowess = sm.nonparametric.lowess(param_scaled[:, 0, 0], time, frac=0.06)  # Filter lowess
-    # plt.plot(date, lowess[:, 1], label=model)
-
-    # ########## PLOT DATA SMOOTHED #############
+    # ############# A plot of field mean ##############
+    plt.plot(date, param_scaled[:, 0, 0], label=model)  # PLOT ORIGINAL DATA
+    # ############ PLOT SMOOTHED ###############
     # window = 8  # date [x:-y], where x+y = window - 1
     # param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
-    # plt.plot(date[4:-3], param_scaled_smoothed, label=model)
+    # plt.plot(date[4:-3], param_scaled_smoothed, label=model)  # Plot data smoothed
 
     plt.ylabel("%s (%s)" % (data_in.variables[param_in].long_name,
                             data_in.variables[param_in].units))
     plt.ticklabel_format(useOffset=False, axis='y')
     plt.xlabel("Time")
-    # plt.title('Annual Average '+data_in.variables[param_in].long_name
-    #          + ' in the '+region+' region', fontweight='bold')
-    plt.title('Annual Average '+data_in.variables[param_in].long_name  # title plot smoothed
+    plt.title('RCP 4.5 - Annual Average '+data_in.variables[param_in].long_name
               + ' in the '+region+' region', fontweight='bold')
-    # plt.show()
+    # plt.title('Annual Average '+data_in.variables[param_in].long_name  # title plot smoothed
+    #          + ' in the '+region+' region smoothed', fontweight='bold')
 
 
 def avg_time_series(nc_in, param_in, region, box_in, model_in, print_info):
@@ -88,19 +78,19 @@ def avg_time_series(nc_in, param_in, region, box_in, model_in, print_info):
     print(model_in)
 
     nc_in_filename = os.path.basename(nc_in)  # ###
-    nc_fldmean = os.path.splitext(nc_in_filename)[0]+'_'+region+"_fldmean.nc"
-    nc_ymean = os.path.splitext(nc_in_filename)[0]+'_'+region+"_ymean.nc"
+    nc_fldmean = os.path.splitext(nc_in_filename)[0]+'_'+region+"_fldmean_45.nc"
+    nc_ymean = os.path.splitext(nc_in_filename)[0]+'_'+region+"_ymean_45.nc"
 
-    png_fldmean = os.path.splitext(nc_in_filename)[0]+'_'+region+"_fldmean.png"
-    png_ymean = os.path.splitext(nc_in_filename)[0]+'_'+region+"_ymean.png"
+    png_fldmean = os.path.splitext(nc_in_filename)[0]+'_'+region+"_fldmean_45.png"
+    png_ymean = os.path.splitext(nc_in_filename)[0]+'_'+region+"_ymean_45.png"
 
-    out_dir = nc_in.replace(nc_in_filename, 'avg')
+    out_dir = nc_in.replace(nc_in_filename, 'avg_45')
     check_and_create(out_dir)
-    nc_fldmean = nc_in.replace(nc_in_filename, 'avg/'+nc_fldmean)
-    nc_ymean = nc_in.replace(nc_in_filename, 'avg/'+nc_ymean)
+    nc_fldmean = nc_in.replace(nc_in_filename, 'avg_45/'+nc_fldmean)
+    nc_ymean = nc_in.replace(nc_in_filename, 'avg_45/'+nc_ymean)
 
-    png_fldmean = nc_in.replace(nc_in_filename, 'avg/'+png_fldmean)
-    png_ymean = nc_in.replace(nc_in_filename, 'avg/'+png_ymean)
+    png_fldmean = nc_in.replace(nc_in_filename, 'avg_45/'+png_fldmean)
+    png_ymean = nc_in.replace(nc_in_filename, 'avg_45/'+png_ymean)
 
     print(nc_fldmean)
     print(nc_ymean)
@@ -175,9 +165,9 @@ boxesArray = [boxAndes, boxAlpine]
 paramArray = []
 
 nc_files_dir = "../nc_files/"
-proyect_dir = "cmip5_historical_converted/"
+proyect_dir = "RCP4_5_converted/"
 
-max_models = 50
+max_models = 45
 # loop the regionArray and boxesArray together
 for region, box in zip(regionArray, boxesArray):
     i_models = 0
@@ -194,9 +184,7 @@ for region, box in zip(regionArray, boxesArray):
 
             # loop all files inside the param path
             for file, file_path in get_subfiles(param_path):
-                if file.startswith("._"):
-                    pass  # does nothing
-                elif file.endswith(".nc"):  # check if file is .nc_files_dir
+                if file.endswith(".nc"):  # check if file is .nc_files_dir
                     # ploth the time series of the spatial avg
                     avg_time_series(file_path, param, region, box, model, False)
                     break
@@ -205,13 +193,12 @@ for region, box in zip(regionArray, boxesArray):
 colormap = plt.cm.tab20
 
 # after ploting all models, set colors and legend for all the figures
-
-modelsHigh = ['MIROC4h',      'CESM1_BGC',      'CESM1_CAM5',       'CESM1_FASTCHEM',
+modelsHigh = ['MIROC4h',  'CESM1_BGC',      'CESM1_CAM5',       'CESM1_FASTCHEM',
               'CCSM4',    'CNRM-CM5',       'CNRM-CM5-2',       'EC-EARTH',
-              'CMCC-CM',    'MIROC5',         'MRI-CGCM3',        'MRI-ESM1']
+              'CMCC-CM',  'MIROC5',         'MRI-CGCM3',        'MRI-ESM1']
 
-modelsHighColors = ['red',  'royalblue',     'black',     'rebeccapurple',
-                    'brown',    'cyan',     'darkorange',   'purple',
+modelsHighColors = ['red',      'royalblue',    'black',        'rebeccapurple',
+                    'brown',    'cyan',         'darkorange',   'purple',
                     'crimson',  'deepskyblue',  'yellowgreen',  'lightseagreen']
 
 for region in regionArray:
@@ -223,8 +210,8 @@ for region in regionArray:
         modelsLowlinestyles = ['--', ':']
 
         for i, line in enumerate(allaxes[0].lines):
-            mod = line.get_label()
 
+            mod = line.get_label()
             # For models in High Res list, use - and predefined color
             if mod in modelsHigh:
                 line.set_linestyle('-')
@@ -240,16 +227,12 @@ for region in regionArray:
         figManager.window.showMaximized()
 
         plt.grid(b=True, linestyle='--', linewidth=1)
-
         # order axes to put High Res models first, and move the legend to the bottom
         [handles, labels] = reorderLegend(allaxes[0], modelsHigh)
-        # plt.legend(handles, labels, loc=(0, 0), fontsize=7, frameon=True, ncol=11, bbox_to_anchor=(-0, -0.38))  # loc=(1.01, 0)
-        # plt.legend(bbox_to_anchor=(0.5, 0., 0.5, 0.5), loc='best', fontsize='small', frameon=True)
-        # plt.legend(loc='best')
-        # plt.legend(loc=(0, 0), fontsize=7, frameon=True, ncol=11, bbox_to_anchor=(-0, -0.38))  # loc=(1.01, 0)
-        plt.legend(handles, labels, loc=(0, 0), fontsize=7, frameon=True, ncol=11, bbox_to_anchor=(-0, -0.4)) # Legend for smoothed
+
+        plt.legend(handles, labels, loc=(0, 0), fontsize=7, frameon=True, ncol=11, bbox_to_anchor=(0, -0.3)) #Legend for smoothed
         # plt.subplots_adjust(right=0.7)
         plt.tight_layout(rect=[0, 0, 1, 1])
 
-        plt.savefig('../'+region+'_'+param+'_annual_avg.png', dpi=150)
+        plt.savefig('../'+region+'_'+param+'_annual_avg_rcp45.png', dpi=150)
 plt.show()

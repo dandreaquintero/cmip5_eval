@@ -174,7 +174,7 @@ def draw_map(m, scale=1):
 
 def get_subdirs(a_dir):
     '''
-    Return the names of the directories inside the input folder,
+    Return (me da los nombres de cada directorio) the names of the directories inside the input folder,
     and the full path of each directory.
     '''
     import os
@@ -234,3 +234,33 @@ def moving_average(arr, win=3):
     ret = np.cumsum(arr, dtype=float)
     ret[win:] = ret[win:] - ret[:-win]
     return ret[win - 1:] / win
+
+
+def reorderLegend(ax=None, order=None, unique=False):
+    '''
+    #  Returns tuple of handles, labels for axis ax, after reordering them to
+    conform to the label order `order`, and if unique is True,
+    after removing entries with duplicate labels
+
+    From https://gitlab.com/cpbl/cpblUtilities/blob/master/mathgraph.py
+    '''
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    if ax is None:
+        ax = plt.gca()
+    handles, labels = ax.get_legend_handles_labels()
+    labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))  # sort both labels and handles by labels
+    if order is not None:  # Sort according to a given list (not necessarily complete)
+        keys = dict(zip(order, range(len(order))))
+        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t, keys=keys: keys.get(t[0], np.inf)))
+    if unique:
+        labels, handles = zip(*unique_everseen(zip(labels, handles), key=labels))  # Keep only the first of each handle
+    # ax.legend(handles, labels)
+    return(handles, labels)
+
+
+def unique_everseen(seq, key=None):
+    seen = set()
+    seen_add = seen.add
+    return [x for x, k in zip(seq, key) if not (k in seen or seen_add(k))]

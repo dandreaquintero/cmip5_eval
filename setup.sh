@@ -33,7 +33,7 @@ source venv2/bin/activate  # to remove an envirm: brew env remove -n venv3
 python --version
 pip --version
 
-# Installed Required pacakges inside virtual env
+# Install Required pacakges inside virtual env
 pip install numpy
 pip install xarray dask netCDF4 bottleneck  #for parallel computing with dask
 pip install matplotlib   #for plotting
@@ -61,7 +61,7 @@ pip install netcdftime
 #Instead of solve, better to use QT5 (only for python3)
 pip install PyQt5
 
-#Or choose the backend in each script with:
+#choose the backend in each script with:
 import matplotlib
 matplotlib.use('Qt5agg')
 import matplotlib.pyplot as plt
@@ -104,3 +104,33 @@ https://localhost:444/impactportal/account/login.jsp
 # with credentials
 user cc4idev
 pass cc4idev123!
+
+
+# ************** CONDA and cdo dev version **************
+
+# follow official instructions to download conda (Miniconda bash script
+# https://docs.conda.io/projects/conda/en/latest/user-guide/install/macos.html
+# make sure to downlaod the python3 version of the script
+bash Miniconda3-latest-MacOSX-x86_64.sh
+
+# create an env and install cdo dev: https://slides.com/wachsylon/cdoetccdi#/3
+conda create --name cdoenv conda-forge/label/dev::cdo -c conda-forg
+
+#activate env
+conda activate cdoenv
+
+# pip install all the required packages (same as with brew)
+pip install cdo
+pip install xarray
+pip install numpy
+pip install dask netCDF4 bottleneck
+pip install matplotlib
+pip install seaborn
+pip install https://github.com/matplotlib/basemap/archive/master.zip
+pip install cython
+pip uninstall shapely; pip install --no-binary :all: shapely
+pip install scipy
+pip install git+https://github.com/snowman2/cartopy.git@5e624fe
+pip install geoviews
+pip install nc-time-axis
+pip install PyQt5

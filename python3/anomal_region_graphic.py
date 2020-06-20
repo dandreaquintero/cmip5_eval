@@ -39,13 +39,13 @@ def plot_time_series(data_in, param_in, region):
 
     window = 10  # date [x:-y], where x+y = window - 1
     param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
-    plt.plot(date[5:-4], param_scaled_smoothed, label=model+'_smoothed')  ##
+    plt.plot(date[5:-4], param_scaled_smoothed, label=model)  ##
 
     plt.ylabel("%s Anomaly (%s)" % (data_in.variables[param_in].long_name,
                                     data_in.variables[param_in].units))
     plt.ticklabel_format(useOffset=False, axis='y')
     plt.xlabel("Time")
-    plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly '+'in the ' + region + ' region')
+    plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly '+'in the ' + region + ' region (smoothed)', fontweight='bold')
 
 
 '''
@@ -55,11 +55,11 @@ The nc files are organized by Model and parameter
 The nc files to be used are the ones from the _converted folder
 The nc files will be analyzed for different regions (for now two)
 '''
-regionArray = ['Andes', 'Alpin']
+regionArray = ['Andes', 'Alpine']
 paramArray = []
 
 nc_files_dir = "../nc_files/"
-proyect_dir = "cmip5_converted/"
+proyect_dir = "cmip5_historical_converted/"
 
 max_models = 50
 # loop the regionArray and boxesArray together
@@ -110,7 +110,7 @@ for region in regionArray:
         # plt.legend(bbox_to_anchor=(0.5, 0., 0.5, 0.5), loc='best', fontsize='small', frameon=True)
         # plt.legend(loc='best')
         # plt.legend(loc=(1.01, 0), fontsize='small', frameon=True)
-        plt.legend(loc=(0, 0), fontsize=7, frameon=True, ncol=7, bbox_to_anchor=(0, -0.45)) #Legend for smoothed
+        plt.legend(loc=(0, 0), fontsize=7, frameon=True, ncol=11, bbox_to_anchor=(0, -0.35)) #Legend for smoothed
         # plt.subplots_adjust(right=0.7)
         plt.tight_layout(rect=[0, 0, 1, 1])
 
@@ -120,5 +120,5 @@ for region in regionArray:
         # highligth 1961 to 1990 range
         plt.axvspan(dt.datetime(1961, 1, 1), dt.datetime(1990, 12, 30), color='b', alpha=0.1)
 
-        plt.savefig('../'+region+'_'+param+'_anomal_smooth.png', dpi=600)
+        plt.savefig('../'+region+'_'+param+'_anomalvsnormal_smooth.png', dpi=200)
 plt.show()

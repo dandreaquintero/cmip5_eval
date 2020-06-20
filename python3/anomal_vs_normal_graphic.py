@@ -45,7 +45,7 @@ def plot_time_series(data_in, param_in, region):
                                     data_in.variables[param_in].units))
     plt.ticklabel_format(useOffset=False, axis='y')
     plt.xlabel("Time")
-    plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly ' + region + ' region')
+    plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly ' + region + ' region', fontweight='bold')
 
 
 '''
@@ -55,11 +55,11 @@ The nc files are organized by Model and parameter
 The nc files to be used are the ones from the _converted folder
 The nc files will be analyzed for different regions (for now two)
 '''
-regionArray = ['Andes', 'Alpin']
+regionArray = ['Andes', 'Alpine']
 paramArray = []
 
 nc_files_dir = "../nc_files/"
-proyect_dir = "cmip5_converted/"
+proyect_dir = "cmip5_historical_converted/"
 
 max_models = 1
 # loop the regionArray and boxesArray together
@@ -122,5 +122,5 @@ for region in regionArray:
         # highligth 1961 to 1990 range
         plt.axvspan(dt.datetime(1961, 1, 1), dt.datetime(1990, 12, 30), color='b', alpha=0.1)
 
-        plt.savefig('../'+region+'_'+param+'_anomal_smooth.png', dpi=600)
+        plt.savefig('../'+region+'_'+param+'_anomal.png', dpi=200)
 plt.show()
