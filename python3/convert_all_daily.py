@@ -16,10 +16,12 @@ cdo = Cdo()
 cdo.degub = True
 
 
-# project_dir = "/Volumes/wd_tesis/cmip5_days"
-# project_dir_converted = "../nc_files/cmip5_converted_days/"
-project_dir = "/Volumes/wd_tesis/tasmin_tasmax_historical/"
-project_dir_converted = "/Volumes/wd_tesis/tasmin_tasmax_historical_converted/"
+project_dir = "/Volumes/wd_personal/rcp45_pr"
+project_dir_converted = "../nc_files/rcp45_pr_daily_converted/"
+
+# project_dir = "/Volumes/wd_tesis/tasmin_tasmax_historical/"
+# project_dir_converted = "/Volumes/wd_tesis/tasmin_tasmax_historical_converted_nocalendar/"
+
 # file_path_aux = "/Users/danielaquintero/Downloads/file_path_aux.nc"
 # project_dir = "/Volumes/wd_tesis/tasmin_tasmax_historical"
 # project_dir_converted = "/Volumes/wd_tesis/tasmin_tasmax_historical_converted/"
@@ -28,12 +30,12 @@ file_path_aux = "/Volumes/wd_tesis/file_path_aux.nc"
 max_models = 45
 i_models = 0
 
-model_array = ['CESM1-CAM5']
+# model_array = ['CCSM4']
 # loop of all models inside the cmip5 project dir
 for model, model_path in get_subdirs(project_dir):
 
-    if model not in model_array:
-       continue
+    # if model not in model_array:
+    #    continue
 
     print(model)
     i_models = i_models + 1
@@ -67,12 +69,12 @@ for model, model_path in get_subdirs(project_dir):
                         print("Create", file_path_converted)
 
                 # try:
-                    convertTime(cdo, file_path, file_path_aux)
-
                     if (param == 'tas') or (param == 'tasmax') or (param == 'tasmin'):
+                        convertTime(cdo, file_path, file_path_converted)
                         print("convert "+param)
-                        convertTemp(cdo, file_path_aux, file_path_converted)
+                        # convertTemp(cdo, file_path_aux, file_path_converted)
                     elif param == 'pr':
+                        convertTime(cdo, file_path, file_path_aux)
                         print("convert pr")
                         convertPrecip(cdo, file_path_aux, file_path_converted)
                     else:
@@ -82,9 +84,8 @@ for model, model_path in get_subdirs(project_dir):
                     # print("**** Conversion error ****")
                     # print("************************+*\n\n")
 
-                        # fh = Dataset(file_path_converted, 'r')
                 else:
                     pass  # does nothing
-                    # print("Not an .nc",, file)
+                    # print("Not an .nc", file)
 
 os.remove(file_path_aux)

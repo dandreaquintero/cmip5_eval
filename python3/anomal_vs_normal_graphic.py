@@ -19,15 +19,15 @@ def plot_time_series(data_in, param_in, region):
     plot_time_series ...
     '''
     # Read time and param vars
-    time = data_in.variables['time'][:]
+    time = data_in.variables['time'][:]            # read the time
     param = data_in.variables[param_in][:]
     # Scale var
     [scal_req, scale_factor, add_offset] = findScaleOffset(data_in, param_in)
     param_scaled = (scale_factor*param)+add_offset
 
     # create time vector
-    time_uni = data_in.variables['time'].units
-    time_cal = data_in.variables['time'].calendar
+    time_uni = data_in.variables['time'].units     # get the time units
+    time_cal = data_in.variables['time'].calendar  # read calendar
 
     cdftime = utime(time_uni, calendar=time_cal)
     date = [cdftime.num2date(t) for t in time]
