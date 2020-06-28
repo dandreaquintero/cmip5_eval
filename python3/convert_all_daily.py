@@ -16,26 +16,23 @@ cdo = Cdo()
 cdo.degub = True
 
 
-project_dir = "/Volumes/wd_personal/rcp45_pr"
-project_dir_converted = "../nc_files/rcp45_pr_daily_converted/"
-
-# project_dir = "/Volumes/wd_tesis/tasmin_tasmax_historical/"
-# project_dir_converted = "/Volumes/wd_tesis/tasmin_tasmax_historical_converted_nocalendar/"
+# project_dir = "/Volumes/wd_personal/rcp85_tmasmin/"
+# project_dir_converted = "../nc_files/rcp85_tmasmin_daily_converted/"
 
 # file_path_aux = "/Users/danielaquintero/Downloads/file_path_aux.nc"
-# project_dir = "/Volumes/wd_tesis/tasmin_tasmax_historical"
-# project_dir_converted = "/Volumes/wd_tesis/tasmin_tasmax_historical_converted/"
+project_dir = "/Volumes/wd_tesis/historical_tmasmin/"
+project_dir_converted = "../nc_files/historical_tmasmin_daily_converted/"
 file_path_aux = "/Volumes/wd_tesis/file_path_aux.nc"
 
 max_models = 45
 i_models = 0
 
-# model_array = ['CCSM4']
+model_array = ['CESM1-BGC', "CESM1-CAM5"]
 # loop of all models inside the cmip5 project dir
 for model, model_path in get_subdirs(project_dir):
 
-    # if model not in model_array:
-    #    continue
+    if model not in model_array:
+        continue
 
     print(model)
     i_models = i_models + 1

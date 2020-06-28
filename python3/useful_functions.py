@@ -1,4 +1,3 @@
-#this is a function
 def ncdump(nc_fid, verb=True):
     '''
     ncdump outputs dimensions, variables and their attribute information.
@@ -192,6 +191,14 @@ def get_subfiles(a_dir):
             if os.path.isfile(os.path.join(a_dir, name))]
 
 
+def check(dir_in):
+    import os
+    if os.path.exists(dir_in):
+        return True
+    else:
+        return False
+
+
 def check_and_create(dir_in):
     '''
     Check if a dir exists, if not, create it
@@ -264,3 +271,179 @@ def unique_everseen(seq, key=None):
     seen = set()
     seen_add = seen.add
     return [x for x, k in zip(seq, key) if not (k in seen or seen_add(k))]
+
+
+def draw_screen_poly(box_in, m):
+    '''
+    '''
+    import numpy as np
+    from matplotlib.patches import Polygon
+
+    import matplotlib.pyplot as plt
+
+    # to draw polygon
+    lon0 = box_in[0]-360
+    lon1 = box_in[1]-360
+    lat0 = box_in[2]
+    lat1 = box_in[3]
+    resolution = 10
+    lats_r = np.hstack((np.linspace(lat0, lat1, resolution),
+                        np.linspace(lat1, lat0, resolution)))
+
+    lons_r = np.hstack((np.linspace(lon0, lon0, resolution),
+                        np.linspace(lon1, lon1, resolution)))
+
+    x, y = m(lons_r, lats_r)
+    xy = zip(x, y)
+    poly = Polygon(list(xy), fc=(1, 0, 0, 0.0), ec=(0.8, 0, 0, 1), lw=2)
+    plt.gca().add_patch(poly)
+
+
+def plot_basemap_regions(nc_in, png_name_in, param_in, region_in, title_in, cdo, bounds_in, colors_in, over_in, under_in, poly_in=False):
+    '''
+
+    '''
+    from netCDF4 import Dataset
+    import numpy as np
+
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    from mpl_toolkits.basemap import Basemap
+
+    boxDict = {
+        "Andes": [283-1, 288+1, 0, 8.5+1],  # long1, long2, lat1, lat2
+        "Alpine": [5-1, 14+1, 44.5-1, 48.5+1]
+        }
+    box_in = boxDict[region_in]
+    box = "%d,%d,%d,%d" % (box_in[0], box_in[1], box_in[2], box_in[3])  # box of Cdo
+
+    print(box)
+    print(nc_in)
+    print(param_in)
+
+    fh = Dataset(nc_in, 'r')
+
+    lons = fh.variables['lon'][:]
+    lats = fh.variables['lat'][:]
+    param = fh.variables[param_in][0:, :, :]
+
+    param_units = fh.variables[param_in].units
+    param_name = fh.variables[param_in].long_name
+    # close file
+    fh.close()
+
+    # Get some parameters for the Stereographic Projection
+    # lon_0 = lons.mean()
+    # lat_0 = lats.mean()
+
+    # m = Basemap(projection='moll',lon_0=0,resolution='l')
+    # m = Basemap(width=50000, height=10000,
+    #             resolution='l', projection='moll',\
+    #             lat_ts=40, lat_0=lat_0, lon_0=lon_0)  # stere=stereographic projection
+    #
+    # m = Basemap(projection='ortho', lat_0=5, lon_0=-60, resolution='l')
+    m = Basemap(projection='cass', llcrnrlat=box_in[2]-2, urcrnrlat=box_in[3]+2,
+                llcrnrlon=box_in[0]-2, urcrnrlon=box_in[1]+2, resolution='l',
+                lon_0=box_in[0]+3, lat_0=box_in[2]+4)
+
+    lons_dim = len(lons.shape)
+    if 2 == lons_dim:
+        lon = lons
+        lat = lats
+    elif 1 == lons_dim:
+        lon, lat = np.meshgrid(lons, lats)
+    else:
+        print("Error in lon lat array dimension: %d" % lons_dim)
+
+    xi, yi = m(lon, lat)
+
+    # Plot Data
+    # cmap = plt.get_cmap('terrain')'' 0.7      0.6         0.5      0.4       0.3        0.2     0.1  0.0
+    cmap = mpl.colors.ListedColormap(colors_in)
+    cmap.set_over(over_in)
+    cmap.set_under(under_in)
+
+    norm = mpl.colors.BoundaryNorm(bounds_in, cmap.N)
+    # cb3 = mpl.colorbar.ColorbarBase(ax, cmap=cmap,
+    #                                 norm=norm,
+    #                                 boundaries=[-10] + bounds + [10],
+    #                                 extend='both',
+    #                                 extendfrac='auto',
+    #                                 ticks=bounds,
+    #                                 spacing='uniform',
+    #                                 orientation='horizontal')
+
+    cs = m.pcolor(xi, yi, np.squeeze(param), alpha=0.7, cmap=cmap, norm=norm)
+
+    # Add Grid Lines
+    m.drawparallels(np.arange(-80., 81., 10.), labels=[1, 0, 0, 0], fontsize=10)
+    m.drawmeridians(np.arange(-180., 181., 10.), labels=[0, 0, 0, 1], fontsize=10)
+
+    # Add Coastlines, States, and Country Boundaries
+    m.drawcoastlines()
+    # m.drawstates()
+    m.drawcountries()
+    m.shadedrelief()
+
+    # Add Colorbar
+    cbar = m.colorbar(cs, location='bottom', pad="10%")
+    cbar.set_label("%s (%s)" % (param_name, param_units))
+
+    if (poly_in):
+        draw_screen_poly(box_in, m)
+
+    # Add Title
+    title_region = (title_in)
+    plt.title(title_region)
+    plt.savefig(png_name_in, dpi=200)
+    # plt.show()
+    plt.close()
+
+
+def plot_time_series(file_path_in, param_in, region):
+    '''
+    plot_time_series ...
+    '''
+
+    from useful_functions import findScaleOffset
+    from netcdftime import utime
+    import matplotlib.pyplot as plt
+    from useful_functions import moving_average
+    from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
+
+    # Read time and param vars
+    data_in = Dataset(file_path_in, mode='r')
+
+    time = data_in.variables['time'][:]
+    param = data_in.variables[param_in][:]
+    # Scale var
+    [scal_req, scale_factor, add_offset] = findScaleOffset(data_in, param_in)
+    param_scaled = (scale_factor*param)+add_offset
+
+    # create time vector
+    time_uni = data_in.variables['time'].units
+    time_cal = data_in.variables['time'].calendar
+
+    print(time_uni)
+    print(time_cal)
+
+    #cdftime = utime(time_uni, calendar=time_cal)
+    #date = [cdftime.num2date(t) for t in time]
+
+    # ############# A plot of Maximum precipitation ##############
+
+    plt.figure(region+' '+param_in, figsize=(15, 6))
+    # plt.plot(date, param_scaled[:, 0, 0], label=model)
+
+    window = 10  # date [x:-y], where x+y = window - 1
+    param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
+    #plt.plot(date[5:-4], param_scaled_smoothed)
+    plt.plot(param_scaled_smoothed)
+
+    plt.ylabel("%s Anomaly (%s)" % (data_in.variables[param_in].long_name,
+                                    data_in.variables[param_in].units))
+    plt.ticklabel_format(useOffset=False, axis='y')
+    plt.xlabel("Time")
+    plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly '+'in the ' + region + ' region (smoothed)', fontweight='bold')
+    plt.show()
+    data_in.close()

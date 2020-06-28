@@ -54,17 +54,16 @@ def cut_region(nc_in, param_in, region, box_in, model_in, print_info):
 # The nc files will be analyzed for different regions (for now two)
 
 # model_array = ['CMCC-CM','CSIRO-Mk3L-1-2','EC-EARTH','FGOALS-s2','GISS-E2-H','GISS-E2-R','HadCM3','HadGEM2-CC','HadGEM2-ES','INM-CM4']
-# model_array = ['CESM1-CAM5']
+model_array = ["CESM1-BGC", 'CESM1-CAM5']  # fgoals-s2
 
 regionArray = ['Andes', 'Alpine']
-boxAndes = [283-1, 288+1, 0, 8.5+1]  # long1, long2, lat1, lat2
+boxAndes = [283-1, 288+1, 0, 8.5+1]  # long1 78, long2 71, lat1, lat2
 boxAlpine = [5-1, 14+1, 44.5-1, 48.5+1]
 boxesArray = [boxAndes, boxAlpine]
 
-# nc_files_dir = "/Volumes/wd_tesis/"          # /Users/danielaquintero/Downloads/
-# proyect_dir = "tasmin_tasmax_historical/"  # proyect_dir = "cmip5_days/"
-nc_files_dir = "/Volumes/wd_personal/"       # /Users/danielaquintero/Downloads/
-proyect_dir = "rcp45_pr"
+nc_files_dir = "/Volumes/wd_tesis/"          # /Users/danielaquintero/Downloads/
+proyect_dir = "historical_tmasmin/"
+# proyect_dir = "rcp85_tmasmin"
 # proyect_dir = "cmip5_days/"
 
 max_models = 50
@@ -74,8 +73,8 @@ for region, box in zip(regionArray, boxesArray):
     # loop of all models inside the cmip5 proyect dir
     for model, model_path in get_subdirs(nc_files_dir+proyect_dir):
 
-        # if model not in model_array:
-        #    continue
+        if model not in model_array:
+            continue
 
         print(model)
 
