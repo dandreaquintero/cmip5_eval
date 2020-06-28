@@ -61,10 +61,10 @@ boxAndes = [283-1, 288+1, 0, 8.5+1]  # long1 78, long2 71, lat1, lat2
 boxAlpine = [5-1, 14+1, 44.5-1, 48.5+1]
 boxesArray = [boxAndes, boxAlpine]
 
-nc_files_dir = "/Volumes/wd_tesis/"          # /Users/danielaquintero/Downloads/
-proyect_dir = "historical_tmasmin/"
-# proyect_dir = "rcp85_tmasmin"
-# proyect_dir = "cmip5_days/"
+# nc_files_dir = "/Volumes/wd_tesis/"          # /Users/danielaquintero/Downloads/
+# proyect_dir = "historical_tmasmin/"
+nc_files_dir = "/Users/danielaquintero/Downloads/"
+proyect_dir = "rcp45/"
 
 max_models = 50
 # loop the regionArray and boxesArray together
@@ -73,8 +73,8 @@ for region, box in zip(regionArray, boxesArray):
     # loop of all models inside the cmip5 proyect dir
     for model, model_path in get_subdirs(nc_files_dir+proyect_dir):
 
-        if model not in model_array:
-            continue
+        # if model not in model_array:
+        #    continue
 
         print(model)
 

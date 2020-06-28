@@ -120,11 +120,7 @@ def findScaleOffset(nc_fid, var, scaleKey='SCale', offsetKey='offset',
 
 
 def convertTime(cdo, nc_file_in, nc_file_out):
-    import os
-    nc_file_out_aux = "convertTime_aux.nc"
-    cdo.setcalendar("standard", input=nc_file_in, output=nc_file_out_aux)
-    cdo.setreftime("1850-01-01,00:00:00", input=nc_file_out_aux, output=nc_file_out)
-    os.remove(nc_file_out_aux)
+    cdo.setreftime("1850-01-01,00:00:00", input="-setcalendar,standard "+nc_file_in, output=nc_file_out)
 
 
 def convertTemp(cdo, nc_file_in, nc_file_out):
@@ -400,50 +396,62 @@ def plot_basemap_regions(nc_in, png_name_in, param_in, region_in, title_in, cdo,
     plt.close()
 
 
-def plot_time_series(file_path_in, param_in, region):
+def plot_time_series(file_path_in_array, param_in, region, zero_line=True):
     '''
     plot_time_series ...
     '''
-
+    import pathlib
     from useful_functions import findScaleOffset
     from netcdftime import utime
     import matplotlib.pyplot as plt
     from useful_functions import moving_average
     from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
+    import datetime as dt  # Python standard library datetime  module
 
     # Read time and param vars
-    data_in = Dataset(file_path_in, mode='r')
-
-    time = data_in.variables['time'][:]
-    param = data_in.variables[param_in][:]
-    # Scale var
-    [scal_req, scale_factor, add_offset] = findScaleOffset(data_in, param_in)
-    param_scaled = (scale_factor*param)+add_offset
-
-    # create time vector
-    time_uni = data_in.variables['time'].units
-    time_cal = data_in.variables['time'].calendar
-
-    print(time_uni)
-    print(time_cal)
-
-    #cdftime = utime(time_uni, calendar=time_cal)
-    #date = [cdftime.num2date(t) for t in time]
-
-    # ############# A plot of Maximum precipitation ##############
 
     plt.figure(region+' '+param_in, figsize=(15, 6))
-    # plt.plot(date, param_scaled[:, 0, 0], label=model)
 
-    window = 10  # date [x:-y], where x+y = window - 1
-    param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
-    #plt.plot(date[5:-4], param_scaled_smoothed)
-    plt.plot(param_scaled_smoothed)
+    for file_path_in in file_path_in_array:
 
-    plt.ylabel("%s Anomaly (%s)" % (data_in.variables[param_in].long_name,
-                                    data_in.variables[param_in].units))
-    plt.ticklabel_format(useOffset=False, axis='y')
-    plt.xlabel("Time")
-    plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly '+'in the ' + region + ' region (smoothed)', fontweight='bold')
+        data_in = Dataset(file_path_in, mode='r')
+
+        time = data_in.variables['time'][:]
+        param = data_in.variables[param_in][:]
+        # Scale var
+        [scal_req, scale_factor, add_offset] = findScaleOffset(data_in, param_in)
+        param_scaled = (scale_factor*param)+add_offset
+
+        # create time vector
+        time_uni = data_in.variables['time'].units
+        time_cal = data_in.variables['time'].calendar
+
+        cdftime = utime(time_uni, calendar=time_cal)
+        date = [cdftime.num2date(t) for t in time]
+
+        # ############# A plot of Maximum precipitation ##############
+
+        # plt.plot(date, param_scaled[:, 0, 0], label=model)
+
+        window = 10  # date [x:-y], where x+y = window - 1
+        param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
+        plt.plot(date[5:145], param_scaled_smoothed[:140],  label=pathlib.Path(file_path_in).stem)
+        plt.plot(date[144:-4], param_scaled_smoothed[139:], label=pathlib.Path(file_path_in).stem)
+
+        plt.ylabel("%s Anomaly (%s)" % (data_in.variables[param_in].long_name,
+                                        data_in.variables[param_in].units))
+
+        plt.ticklabel_format(useOffset=False, axis='y')
+        plt.xlabel("Time")
+        plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly '+'in the ' + region + ' region (smoothed)', fontweight='bold')
+
+    plt.legend()  # loc=(0, 0), fontsize=7, frameon=True, ncol=11, bbox_to_anchor=(0, -0.35)) #Legend for smoothed
+    # add horizontal line at y=0
+    if zero_line:
+        plt.axhline(y=0, color='k')
+    # highligth 1961 to 1990 range
+    plt.axvspan(dt.datetime(1961, 1, 1), dt.datetime(1990, 12, 30), color='b', alpha=0.1)
+
+    plt.grid(b=True, linestyle='--', linewidth=1)
     plt.show()
     data_in.close()

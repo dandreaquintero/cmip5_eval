@@ -1,0 +1,94 @@
+:history =
+"Thu Jun 25 15:19:47 2020: cdo -O -f nc -f nc -sub
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/ANN/present.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/ANN/reference.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/ANN/present_sub.nc\n",
+
+"Thu Jun 25 15:19:47 2020: cdo -O -f nc -f nc -ensmean 
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MIROC5/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MIROC-ESM-CHEM/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/GFDL-ESM2M/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/NorESM1-M/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CSIRO-Mk3L-1-2/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/ACCESS1.0/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/BCC-CSM1.1/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/BCC-CSM1.1-m/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MRI-CGCM3/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CMCC-CMS/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CESM1-BGC/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CESM1-CAM5/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/FGOALS-s2/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CMCC-CESM/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/IPSL-CM5A-LR/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/GISS-E2-R/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CESM1-FASTCHEM/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/GISS-E2-H/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MPI-ESM-MR/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/IPSL-CM5B-LR/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MPI-ESM-LR/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/BNU-ESM/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/IPSL-CM5A-MR/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CSIRO-Mk3-6-0/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/GFDL-ESM2G/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MIROC-ESM/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/EC-EARTH/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MIROC4h/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/HadGEM2AO/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MPI-ESM-P/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/ACCESS1.3/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CanESM2/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/GFDL-CM3/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/HadGEM2-ES/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/HadGEM2-CC/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MRI-ESM1/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CCSM4/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/HadCM3/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/FGOALS-g2/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/INM-CM4/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CMCC-CM/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CNRM-CM5/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/CanCM4/ANN/present_1991-2020_regrid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/ANN/present.nc\n",
+
+"Thu Jun 25 15:19:45 2020: cdo -O -remapbil,
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/target_grid.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MIROC5/ANN/present_1991-2020.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/sdii/Alpine/models/MIROC5/ANN/present_1991-2020_regrid.nc\n",
+
+"Mon Jun 22 01:03:52 2020: cdo -O -f nc -f nc -etccdi_sdii -select,name=pr -selyear,1991/2020 -select,season=ANN
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/historical_pr_daily_converted/MIROC5/pr/Alpine/pr_day_MIROC5_historical_r1i1p1_18500101-20121231_Alpine.nc
+/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices//sdii/Alpine/models/MIROC5/ANN/present_1991-2020.nc" ;
+
+
+"Wed Jun 17 20:09:07 2020: cdo mergetime
+pr_day_MIROC5_historical_r1i1p1_18500101-18591231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_18600101-18691231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_18700101-18791231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_18800101-18891231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_18900101-18991231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_19000101-19091231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_19100101-19191231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_19200101-19291231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_19300101-19391231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_19400101-19491231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_19500101-19591231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_19600101-19691231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_19700101-19791231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_19800101-19891231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_19900101-19991231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_20000101-20091231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_20100101-20121231_Alpine.nc
+pr_day_MIROC5_historical_r1i1p1_18500101-20121231_Alpine.nc\n",
+
+"Wed Jun 17 17:37:37 2020: cdo -O -chunit,kg m-2 s-1,mm day-1
+convertPrecip_aux.nc
+../nc_files/cmip5_converted_days//MIROC5/pr/Alpine/pr_day_MIROC5_historical_r1i1p1_18500101-18591231_Alpine.nc\n",
+
+"Wed Jun 17 17:37:37 2020: cdo -O -mulc,86400 /Volumes/wd_tesis/file_path_aux.nc convertPrecip_aux.nc\n",
+"Wed Jun 17 17:37:37 2020: cdo -O -setreftime,1850-01-01,00:00:00 convertTime_aux.nc /Volumes/wd_tesis/file_path_aux.nc\n",
+"Wed Jun 17 17:37:37 2020: cdo -O -setcalendar,standard /Volumes/wd_tesis/cmip5_days/MIROC5/pr/Alpine/pr_day_MIROC5_historical_r1i1p1_18500101-18591231_Alpine.nc convertTime_aux.nc\n",
+
+"Wed Jun 17 16:49:28 2020: cdo -O -f nc -f nc -sellonlatbox,4,15,43,49
+/Volumes/wd_tesis/cmip5_days/MIROC5/pr/pr_day_MIROC5_historical_r1i1p1_18500101-18591231.nc
+/Volumes/wd_tesis/cmip5_days/MIROC5/pr/Alpine/pr_day_MIROC5_historical_r1i1p1_18500101-18591231_Alpine.nc\n",
+"2011-10-19T10:12:28Z CMOR rewrote data to comply with CF standards and CMIP5 requirements." ;

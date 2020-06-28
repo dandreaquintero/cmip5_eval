@@ -7,7 +7,8 @@ import pathlib
 import argparse
 import sys
 import shutil
-
+import os.path
+import matplotlib.pyplot as plt
 
 def selyear_index(index_in, param_in, nc_in=None, out_dir_in=None, first_year_in=None):
     '''
@@ -23,8 +24,6 @@ def selyear_index(index_in, param_in, nc_in=None, out_dir_in=None, first_year_in
         print("Error, output dir is was not specified")
         return -1
 
-    pathlib.Path(out_dir_in + '/years/').mkdir(parents=True, exist_ok=True)
-
     # if a first year is given, start from there, otherwise, start from the first year on the file name
     first_year_file = ((nc_in.split("_"))[-2].split("-")[0])[0:4]
     first_year = first_year_in
@@ -33,6 +32,18 @@ def selyear_index(index_in, param_in, nc_in=None, out_dir_in=None, first_year_in
 
     last_year = ((nc_in.split("_"))[-2].split("-")[1])[0:4]
     nc_out_array = ""
+    if first_year_file != "1861" or last_year != "2090":
+        print("Error in first or last year "+first_year_file+"-"+last_year)
+        return
+
+    nc_out_fldmean = (out_dir_in + '/' + pathlib.Path(nc_in).stem + "_sdii_ts.nc").replace(first_year_file, first_year)
+    # Create nc files for field mean and year mean.
+    if os.path.exists(nc_out_fldmean):  # False:
+        print("%s already exists", nc_out_fldmean)
+        return
+
+    pathlib.Path(out_dir_in + '/years/').mkdir(parents=True, exist_ok=True)
+
     for year in range(int(first_year), int(last_year)+1):
         cdo_selyear_command = "-selyear,"+str(year)
         nc_out = out_dir_in + '/years/' + pathlib.Path(nc_in).stem + "_sdii"+str(year)+".nc"
@@ -48,9 +59,7 @@ def selyear_index(index_in, param_in, nc_in=None, out_dir_in=None, first_year_in
     # try:
     nc_out_merge = (out_dir_in + '/years/' + pathlib.Path(nc_in).stem + "_sdii.nc").replace(first_year_file, first_year)  # adapt the name to the actual first year used
     cdo.mergetime(input=nc_out_array, output=nc_out_merge, options='-f nc', force=True, returnCdf=False)
-
-    nc_out_fldmean = (out_dir_in + '/' + pathlib.Path(nc_in).stem + "_sdii_ts.nc").replace(first_year_file, first_year)
-    cdo.fldmean(input=nc_out_merge, output=nc_out_fldmean, options="-f nc", force=True, returnCdf=False)
+    cdo.fldmean(input="-setreftime,1850-01-01,00:00:00 "+nc_out_merge, output=nc_out_fldmean, options="-f nc", force=True, returnCdf=False)
 
     print("")
     print(nc_out_fldmean)
@@ -60,8 +69,8 @@ def selyear_index(index_in, param_in, nc_in=None, out_dir_in=None, first_year_in
     except OSError as e:
         print("Error: %s" % (e.strerror))
 
-    # except CDOException:
-    #    print("CDO Exception")
+    except CDOException:
+       print("CDO Exception")
 
 
 def seasons_index(index_in, param_in, nc_in=None, out_dir_in=None):
@@ -129,6 +138,7 @@ def loop_models():
                                 if index == "sdii":
                                     selyear_index(index_in=index, param_in=param, nc_in=file_path, out_dir_in=output_dir, first_year_in=first_year)
                                     seasons_index(index_in=index, param_in=param, nc_in=file_path, out_dir_in=output_dir)
+                                    print("")
 
 
 def merge_seasons(rcp_path):
@@ -169,8 +179,9 @@ def merge_seasons(rcp_path):
                     print("CDO error")
 
 
-def merge_ts(rcp_path):
+def merge_ts(rcp_path, param, region):
     array_all_models = ""
+    file_path_list = []
     for model, model_path in get_subdirs(rcp_path+"/models/"):
         for file, file_path in get_subfiles(model_path):
             if file.startswith("._"):
@@ -178,30 +189,37 @@ def merge_ts(rcp_path):
 
             elif file.endswith(".nc"):  # check if file is .nc
                 array_all_models += file_path + ' '
+                file_path_list.append(file_path)
 
     if array_all_models == '':
         print("No files found in %s" % rcp_path)
     else:
-        nc_ensmean_out = rcp_path + '/' + index + '_ts.nc'
-        cdo.enspctl("50", input=array_all_models, output=nc_ensmean_out, options='-f nc', force=True, returnCdf=False)  # median = 50th percentil
+        # plot_time_series(file_path_list, param, region, False)
+        percentil_array = ["25", "50", "75", "mean"]  # median = 50th percentil
+        for percentil in percentil_array:
+            nc_ensmean_out = rcp_path + '/' + index + '_percent_' + percentil + '_ts.nc'
 
-        # find anomalie
-        nc_avg_61_90 = nc_ensmean_out.replace('_ts.nc', '_avg_61_90.nc')
-        nc_anomal = nc_ensmean_out.replace('_ts.nc', '_ts_anomal.nc')
+            if percentil == "mean":
+                cdo.ensmean(input=array_all_models, output=nc_ensmean_out, options='-f nc', force=True, returnCdf=False)
+            else:
+                cdo.enspctl(percentil, input=array_all_models, output=nc_ensmean_out, options='-f nc', force=True, returnCdf=False)
+            # find anomalie
+            nc_avg_61_90 = nc_ensmean_out.replace('_ts.nc', '_avg_61_90.nc')
+            nc_anomal = nc_ensmean_out.replace('_ts.nc', '_ts_anomal.nc')
 
-        year_range = "-selyear,1961/1990"
-        avg_61_90_val = cdo.timmean(input=year_range+" "+nc_ensmean_out, output=nc_avg_61_90, options='-f nc', returnCdf=True).variables[index+"ETCCDI"][0, 0, 0]
+            year_range = "-selyear,1961/1990"
+            avg_61_90_val = cdo.timmean(input=year_range+" "+nc_ensmean_out, output=nc_avg_61_90, options='-f nc', returnCdf=True).variables[index+"ETCCDI"][0, 0, 0]
 
-        cdo.subc(avg_61_90_val, input=nc_ensmean_out, output=nc_anomal)
-        print(nc_anomal)
+            cdo.subc(avg_61_90_val, input=nc_ensmean_out, output=nc_anomal)
+            print(nc_anomal)
 
 
 def merge_index():
     for index, index_path in get_subdirs(indices_output_dir):
         for region, region_path in get_subdirs(index_path):
             for rcp, rcp_path in get_subdirs(region_path):
-                merge_seasons(rcp_path)
-                merge_ts(rcp_path)
+                # merge_seasons(rcp_path)
+                merge_ts(rcp_path, index+"ETCCDI", region)
 
 
 def graph_map():
@@ -229,14 +247,16 @@ def graph_ts():
         param = index+"ETCCDI"
         for region, region_path in get_subdirs(index_path):
             for rcp, rcp_path in get_subdirs(region_path):
+                files_to_plot = []
                 for file, file_path in get_subfiles(rcp_path):
                     if file.startswith("._"):
                         continue
                     elif file.endswith("anomal.nc"):  # if files ends with anomal.nc is the result of a substraction, and needs to be graphed
-                        plot_time_series(file_path, param, region)
-
+                        files_to_plot.append(file_path)
+                plot_time_series(files_to_plot, param, region)
 
 # __________________Here starts the script ______________________
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--full", help="Perform all of the operations", action="store_true")
@@ -285,7 +305,7 @@ if args.full or args.merge:
 
 if args.full or args.graph:
     print("Creating graphs")
-    # graph_map()
+    # graph_map()
     graph_ts()
 
 print("FINISHED")

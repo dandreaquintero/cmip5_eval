@@ -66,8 +66,6 @@ for model_histo, model_histo_path in get_subdirs(nc_dir+histo_path):
             print(file_histo_merge)
             print(file_rcp_merge)
 
-            pathlib.Path(region_histo_path.replace(histo_path, merge_path)).mkdir(parents=True, exist_ok=True)  # To create the output dir
-
             first_year = (file_histo_merge.split("_"))[-2].split("-")[0]
             last_year = (file_rcp_merge.split("_"))[-2].split("-")[1]
 
@@ -78,13 +76,15 @@ for model_histo, model_histo_path in get_subdirs(nc_dir+histo_path):
                 print("Does not include 2090\n")
                 continue
 
+            pathlib.Path(region_histo_path.replace(histo_path, merge_path)).mkdir(parents=True, exist_ok=True)  # To create the output dir
+
             histo_and_ens = (file_histo_merge.split("_"))[-4]+"-"+(file_histo_merge.split("_"))[-3]
             rcp_and_ens = (file_rcp_merge.split("_"))[-4]+"-"+(file_rcp_merge.split("_"))[-3]
 
-            file_merge = (region_histo_path.replace(histo_path, merge_path)+"/"+param_histo+"_day_"+model_histo+"_"+histo_and_ens+"_"+rcp_and_ens+"_"
-                          + first_year+"-"+last_year+"_"+region_histo+".nc")
+            file_merge = (region_histo_path.replace(histo_path, merge_path)+"/"+param_histo+"_day_"+model_histo+"_"+histo_and_ens+"_"+rcp_and_ens
+                          + "_18610101-20901231_"+region_histo+".nc")
 
             print(file_merge)
             print("")
-            cdo.mergetime(input=file_histo_merge + " " + file_rcp_merge,
+            cdo.mergetime(input="-selyear,1861/2005 "+file_histo_merge + " " + "-selyear,2006/2090 " + file_rcp_merge,
                           output=file_merge, options='-f nc', force=args.force, returnCdf=False)
