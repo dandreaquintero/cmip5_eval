@@ -119,6 +119,14 @@ conda create --name cdoenv conda-forge/label/dev::cdo -c conda-forge
 #activate env
 conda activate cdoenv
 
+#if in linux, install 
+sudo apt-get install -y libgeos-dev
+sudo apt-get install libproj-dev
+sudo apt-get install libgeos++-dev
+conda install -c conda-forge cartopy
+#then if cdo is downgraded to the official release, intall the dev again:
+conda install conda-forge/label/dev::cdo -c conda-forge
+
 # pip install all the required packages (same as with brew)
 pip install cdo
 pip install xarray
