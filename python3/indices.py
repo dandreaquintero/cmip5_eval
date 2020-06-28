@@ -120,7 +120,7 @@ def loop_models():
 
                             elif file.endswith(".nc"):  # check if file is .nc
                                 first_year = None
-                                out_dir = None
+                                output_dir = None
                                 if "rcp45" in experiment:
                                     output_dir = indices_output_dir + '/' + index + '/' + region + '/rcp45/models/' + model
                                 elif "rcp85" in experiment:
