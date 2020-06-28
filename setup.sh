@@ -114,7 +114,7 @@ pass cc4idev123!
 bash Miniconda3-latest-MacOSX-x86_64.sh
 
 # create an env and install cdo dev: https://slides.com/wachsylon/cdoetccdi#/3
-conda create --name cdoenv conda-forge/label/dev::cdo -c conda-forg
+conda create --name cdoenv conda-forge/label/dev::cdo -c conda-forge
 
 #activate env
 conda activate cdoenv
