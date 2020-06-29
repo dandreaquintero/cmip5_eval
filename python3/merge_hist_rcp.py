@@ -44,6 +44,8 @@ for model_histo, model_histo_path in get_subdirs(nc_dir+histo_path):
         # loop all regions inside each parameter
         for region_histo, region_histo_path in get_subdirs(param_histo_path):
             # loop all files inside the param path
+            file_histo_merge = ""
+            file_rcp_merge = ""
             for file_histo, file_histo_path in get_subfiles(region_histo_path):
                 if file_histo.startswith("._"):
                     continue  # go to next file
@@ -65,6 +67,13 @@ for model_histo, model_histo_path in get_subdirs(nc_dir+histo_path):
 
             print(file_histo_merge)
             print(file_rcp_merge)
+
+            if file_histo_merge == "":
+                print("no files in histo path")
+                continue
+            if file_rcp_merge == "":
+                print("no files in rcp path")
+                continue
 
             first_year = (file_histo_merge.split("_"))[-2].split("-")[0]
             last_year = (file_rcp_merge.split("_"))[-2].split("-")[1]

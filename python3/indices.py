@@ -8,7 +8,7 @@ import argparse
 import sys
 import shutil
 import os.path
-import matplotlib.pyplot as plt
+
 
 def selyear_index(index_in, param_in, nc_in=None, out_dir_in=None, first_year_in=None):
     '''
@@ -36,7 +36,7 @@ def selyear_index(index_in, param_in, nc_in=None, out_dir_in=None, first_year_in
         print("Error in first or last year "+first_year_file+"-"+last_year)
         return
 
-    nc_out_fldmean = (out_dir_in + '/' + pathlib.Path(nc_in).stem + "_sdii_ts.nc").replace(first_year_file, first_year)
+    nc_out_fldmean = (out_dir_in + '/' + pathlib.Path(nc_in).stem + "_" + index_in + "_ts.nc").replace(first_year_file, first_year)
     # Create nc files for field mean and year mean.
     if os.path.exists(nc_out_fldmean):  # False:
         print("%s already exists", nc_out_fldmean)
@@ -46,20 +46,20 @@ def selyear_index(index_in, param_in, nc_in=None, out_dir_in=None, first_year_in
 
     for year in range(int(first_year), int(last_year)+1):
         cdo_selyear_command = "-selyear,"+str(year)
-        nc_out = out_dir_in + '/years/' + pathlib.Path(nc_in).stem + "_sdii"+str(year)+".nc"
+        nc_out = out_dir_in + '/years/' + pathlib.Path(nc_in).stem + "_" + index_in + str(year)+".nc"
         # try:
         if args.verbose:
             print(nc_out)
         # force to False so if the file already exists is not overwritten
         index_cdo_function(input=cdo_selyear_command+" "+nc_in,
-                           output=nc_out, options='-f nc', force=True, returnCdf=False)
+                           output=nc_out, options='-f nc', force=False, returnCdf=False)
         nc_out_array = nc_out_array+" "+nc_out
         # except CDOException:
         #    print("CDO Exception")
     # try:
-    nc_out_merge = (out_dir_in + '/years/' + pathlib.Path(nc_in).stem + "_sdii.nc").replace(first_year_file, first_year)  # adapt the name to the actual first year used
-    cdo.mergetime(input=nc_out_array, output=nc_out_merge, options='-f nc', force=True, returnCdf=False)
-    cdo.fldmean(input="-setreftime,1850-01-01,00:00:00 "+nc_out_merge, output=nc_out_fldmean, options="-f nc", force=True, returnCdf=False)
+    nc_out_merge = (out_dir_in + '/years/' + pathlib.Path(nc_in).stem + "_" + index_in + ".nc").replace(first_year_file, first_year)  # adapt the name to the actual first year used
+    cdo.mergetime(input=nc_out_array, output=nc_out_merge, options='-f nc', force=False, returnCdf=False)
+    cdo.fldmean(input="-setreftime,1850-01-01,00:00:00 "+nc_out_merge, output=nc_out_fldmean, options="-f nc", force=False, returnCdf=False)
 
     print("")
     print(nc_out_fldmean)
@@ -73,7 +73,7 @@ def selyear_index(index_in, param_in, nc_in=None, out_dir_in=None, first_year_in
        print("CDO Exception")
 
 
-def seasons_index(index_in, param_in, nc_in=None, out_dir_in=None):
+def direct_periods_index(index_in, param_in, nc_in=None, out_dir_in=None):
     '''
     For indices that give a single value for the timeperiod, like sdii
     Generate given index for the following 4 periods:
@@ -91,7 +91,10 @@ def seasons_index(index_in, param_in, nc_in=None, out_dir_in=None):
         return -1
 
     if out_dir_in is None:
-        print("Error, output dir is was not specified")
+        print("Error, output dir  was not specified")
+        return -1
+    if nc_in is None:
+        print("Error, nc_in was not specified")
         return -1
 
     for season in seasons:
@@ -99,7 +102,7 @@ def seasons_index(index_in, param_in, nc_in=None, out_dir_in=None):
         cdo_season_command = sel_season+season
         for year_range, name in zip(year_range_array, period_name_array):
             cdo_year_command = sel_year_range+year_range
-            nc_out = out_dir_in + "/" + season + "/" + pathlib.Path(nc_in).stem + "_sdii_" + name + ".nc"
+            nc_out = out_dir_in + "/" + season + "/" + pathlib.Path(nc_in).stem + "_" + index_in + "_" + name + ".nc"
 
             print(nc_out)
             try:
@@ -110,40 +113,135 @@ def seasons_index(index_in, param_in, nc_in=None, out_dir_in=None):
                 print("CDO error")  # lik
 
 
+def percentile_index(index_in, param_in, nc_in=None, out_dir_in=None, isTemp=False):
+    '''
+    Calculate percentile indices.
+    For temperature that require bootstrapping first calculates runmin and runmax (if not already generated)
+    '''
+    index_cdo_function = getattr(cdo, "etccdi_"+index_in)  # get the cdo function coressponding to the input index
+
+    if index_cdo_function is None:
+        print("Error, not an index from etccdi")
+        return -1
+
+    if out_dir_in is None:
+        print("Error, output dir is was not specified")
+        return -1
+
+    nc_out_runmin = (out_dir_in + '/' + pathlib.Path(nc_in).stem + "_runmin.nc")
+    nc_out_runmax = (out_dir_in + '/' + pathlib.Path(nc_in).stem + "_runmax.nc")
+    nc_out_percentile = (out_dir_in + '/' + pathlib.Path(nc_in).stem + "_"+index_in+".nc")
+
+    windowDays = ""
+    bootstrapping = "1961,1990"
+
+    if isTemp:
+        windowDays = "5"  # Number of timestamps
+        # Genreate runmin and runmax (if not already generated)
+        print(nc_out_runmin)
+        cdo.ydrunmin(windowDays, input=nc_in, output=nc_out_runmin, options='-f nc', force=False, returnCdf=False)
+        print(nc_out_runmax)
+        cdo.ydrunmax(windowDays, input=nc_in, output=nc_out_runmax, options='-f nc', force=False, returnCdf=False)
+        windowDays = "5,"  # Number of timestamps, add comma for next command
+    else:
+        # Genreate runmin and runmax (if not already generated)
+        # timmin, timmax calculate the min and max in time (so the result is a point for each grid)
+        # setrtomiss sets the values in the range to missing value. Because we are interested in days with precipitation larger than 1, wet-day precipitation (PR > 1 mm)
+        # then set precipitation in range 0,1 to the missing value (to ignore it)
+        print(nc_out_runmin)
+        cdo.timmin(input="-setrtomiss,0,1 "+nc_in, output=nc_out_runmin, options='-f nc', force=False, returnCdf=False)
+        print(nc_out_runmax)
+        cdo.timmax(input="-setrtomiss,0,1 "+nc_in, output=nc_out_runmax, options='-f nc', force=False, returnCdf=False)
+
+    print(nc_out_percentile)
+    index_cdo_function(windowDays+bootstrapping, input=nc_in+" "+nc_out_runmin+" "+nc_out_runmax,
+                       output=nc_out_percentile, options='-f nc', force=False, returnCdf=False)
+    print("")
+
+
+def generate_periods(index_in, out_dir_in=None):
+
+    if out_dir_in is None:
+        print("Error, output_dir_in is was not specified")
+        return -1
+
+    for year_range, name in zip(year_range_array, period_name_array):
+        cdo_year_command = sel_year_range+year_range
+        for file, file_path in get_subfiles(out_dir_in):
+            if file.startswith("._"):
+                continue  # does nothing
+            elif file.endswith(index_in+".nc"):  # if file ends with index.nc, it is the pure idex file, with matrix values (temp and field)
+                nc_out = out_dir_in + "/ANN/" + pathlib.Path(file_path).stem + "_" + name + ".nc"
+                print(nc_out)
+                print("")
+                cdo.timmean(input="-setreftime,1850-01-01,00:00:00 "+cdo_year_command + " " + file_path, output=nc_out, options='-f nc', force=True, returnCdf=False)
+
+
+def generate_ts(index_in, out_dir_in=None):
+    if out_dir_in is None:
+        print("Error, output_dir_in is was not specified")
+        return -1
+
+    for file, file_path in get_subfiles(out_dir_in):
+        if file.startswith("._"):
+            continue  # does nothing
+        elif file.endswith(index_in+".nc"):  # if file ends with index.nc, it is the pure idex file, with matrix values (temp and field)
+            nc_out = out_dir_in + "/" + pathlib.Path(file_path).stem + "_ts.nc"
+            print(nc_out)
+            print("")
+            cdo.fldmean(input="-setreftime,1850-01-01,00:00:00 "+file_path, output=nc_out, options='-f nc', force=False, returnCdf=False)
+
+
 def loop_models():
     print("Calculate %s using %s" % (index, req_param))
-    # loop the experiment folders we have
-    for experiment in experiment_array:
-        # loop of all models inside the experiment folder
-        for model, model_path in get_subdirs(experiment):
-            # loop of all parameters inside each model
-            for param, param_path in get_subdirs(model_path):
-                # if the param is the required one for the index
-                if param == req_param:
-                    for region, region_path in get_subdirs(param_path):
-                        # loop all files inside the param path
-                        for file, file_path in get_subfiles(region_path):
 
-                            if file.startswith("._"):
-                                pass  # does nothing
+    # loop of all models inside the experiment folder
+    for model, model_path in get_subdirs(experiment):
+        # loop of all parameters inside each model
+        for param, param_path in get_subdirs(model_path):
+            # if the param is the required one for the index
+            if param == req_param:
+                for region, region_path in get_subdirs(param_path):
+                    # loop all files inside the param path
+                    for file, file_path in get_subfiles(region_path):
 
-                            elif file.endswith(".nc"):  # check if file is .nc
-                                first_year = None
-                                output_dir = None
-                                if "rcp45" in experiment:
-                                    output_dir = indices_output_dir + '/' + index + '/' + region + '/rcp45/models/' + model
-                                elif "rcp85" in experiment:
-                                    first_year = 2006  # To avoid calculating sdii again for the historical data
-                                    output_dir = indices_output_dir + '/' + index + '/' + region + '/rcp85/models/' + model
-                                if index == "sdii":
-                                    selyear_index(index_in=index, param_in=param, nc_in=file_path, out_dir_in=output_dir, first_year_in=first_year)
-                                    seasons_index(index_in=index, param_in=param, nc_in=file_path, out_dir_in=output_dir)
-                                    print("")
+                        if file.startswith("._"):
+                            pass  # does nothing
+
+                        elif file.endswith(".nc"):  # check if file is .nc
+                            first_year = None
+                            output_dir = None
+                            if "rcp45" in experiment:
+                                output_dir = indices_output_dir + '/' + index + '/' + region + '/rcp45/models/' + model
+                            elif "rcp85" in experiment:
+                                first_year = "1996"  # To avoid calculating indices again for the historical data
+                                output_dir = indices_output_dir + '/' + index + '/' + region + '/rcp85/models/' + model
+
+                            pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+                            if index == "sdii":
+                                selyear_index(index_in=index, param_in=param, nc_in=file_path, out_dir_in=output_dir, first_year_in=first_year)
+                                direct_periods_index(index_in=index, param_in=param, nc_in=file_path, out_dir_in=output_dir)
+                                print("")
+
+                            elif index == "r95p":
+                                percentile_index(index_in=index, param_in=param, nc_in=file_path, out_dir_in=output_dir, isTemp=False)
+                                generate_periods(index_in=index, out_dir_in=output_dir)
+                                generate_ts(index_in=index, out_dir_in=output_dir)
+
+                            elif index == "tx90p":
+                                percentile_index(index_in=index, param_in=param, nc_in=file_path, out_dir_in=output_dir, isTemp=True)
+                                generate_periods(index_in=index, out_dir_in=output_dir)
+                                generate_ts(index_in=index, out_dir_in=output_dir)
 
 
-def merge_seasons(rcp_path):
+def merge_periods(rcp_path, index, do_seasons=False, do_sub=False):
 
-    for season in seasons:
+    if do_seasons is False:
+        seasons_local = ["ANN"]     # No seasons
+    else:
+        seasons_local = seasons  # the globally defined seasons
+    for season in seasons_local:
         pathlib.Path(rcp_path + '/' + season).mkdir(parents=True, exist_ok=True)
         nc_ensmean_reference = ''
         for period in period_name_array:
@@ -157,7 +255,7 @@ def merge_seasons(rcp_path):
                 index_file_regrid = index_file.replace('.nc', '_regrid.nc')
                 target_grid_file = rcp_path + '/target_grid.nc'
 
-                cdo.remapbil(target_grid_file, input=index_file, output=index_file_regrid, froce=False)
+                cdo.remapbil(target_grid_file, input=index_file, output=index_file_regrid, froce=False) # regrid to target grid
 
                 index_all_models += index_file_regrid + ' '
 
@@ -167,19 +265,23 @@ def merge_seasons(rcp_path):
                 nc_ensmean_out = rcp_path + '/' + season + '/' + index + "_" + period + '.nc'
                 try:
                     print(nc_ensmean_out)
+                    # print(index_all_models)
                     cdo.enspctl("50", input=index_all_models, output=nc_ensmean_out, options='-f nc', force=True, returnCdf=False)  # median = 50th percentil
-                    if "reference" in period:
-                        nc_ensmean_reference = nc_ensmean_out
 
-                    elif nc_ensmean_reference != '':  # substract reference from period. Only for non reference period, if reference file has been found.
-                        nc_ensmean_sub_out = rcp_path + '/' + season + '/' + index + "_" + period + '_sub.nc'
-                        print(nc_ensmean_sub_out)
-                        cdo.sub(input=nc_ensmean_out + " " + nc_ensmean_reference, output=nc_ensmean_sub_out, options='-f nc', force=True, returnCdf=False)
+                    if do_sub:
+                        if "reference" in period:
+                            nc_ensmean_reference = nc_ensmean_out
+
+                        elif nc_ensmean_reference != '':  # substract reference from period. Only for non reference period, if reference file has been found.
+                            nc_ensmean_sub_out = rcp_path + '/' + season + '/' + index + "_" + period + '_sub.nc'
+                            print(nc_ensmean_sub_out)
+                            cdo.sub(input=nc_ensmean_out + " " + nc_ensmean_reference, output=nc_ensmean_sub_out, options='-f nc', force=False, returnCdf=False)
                 except CDOException:
                     print("CDO error")
+            print("\n\n")
 
 
-def merge_ts(rcp_path, param, region):
+def merge_ts(rcp_path, param, region, do_anom=False):
     array_all_models = ""
     file_path_list = []
     for model, model_path in get_subdirs(rcp_path+"/models/"):
@@ -187,14 +289,15 @@ def merge_ts(rcp_path, param, region):
             if file.startswith("._"):
                 continue
 
-            elif file.endswith(".nc"):  # check if file is .nc
+            elif file.endswith("ts.nc"):  # check if end is ts.nc which means it is a time series and needs to be ensembled
                 array_all_models += file_path + ' '
-                file_path_list.append(file_path)
+                if "CESM1-CAM5" not in file:
+                    file_path_list.append(file_path)  # only to plot individually for debbugging
 
     if array_all_models == '':
         print("No files found in %s" % rcp_path)
     else:
-        # plot_time_series(file_path_list, param, region, False)
+        plot_time_series(file_path_list, png_name_in=rcp_path + '/' + index + "_allModels_ts.png", param_in=param, region=region, h_line=10)
         percentil_array = ["25", "50", "75", "mean"]  # median = 50th percentil
         for percentil in percentil_array:
             nc_ensmean_out = rcp_path + '/' + index + '_percent_' + percentil + '_ts.nc'
@@ -203,31 +306,54 @@ def merge_ts(rcp_path, param, region):
                 cdo.ensmean(input=array_all_models, output=nc_ensmean_out, options='-f nc', force=True, returnCdf=False)
             else:
                 cdo.enspctl(percentil, input=array_all_models, output=nc_ensmean_out, options='-f nc', force=True, returnCdf=False)
-            # find anomalie
-            nc_avg_61_90 = nc_ensmean_out.replace('_ts.nc', '_avg_61_90.nc')
-            nc_anomal = nc_ensmean_out.replace('_ts.nc', '_ts_anomal.nc')
 
-            year_range = "-selyear,1961/1990"
-            avg_61_90_val = cdo.timmean(input=year_range+" "+nc_ensmean_out, output=nc_avg_61_90, options='-f nc', returnCdf=True).variables[index+"ETCCDI"][0, 0, 0]
+            if do_anom:
+                # find anomalie
+                nc_avg_61_90 = nc_ensmean_out.replace('_ts.nc', '_avg_61_90.nc')
+                nc_anomal = nc_ensmean_out.replace('_ts.nc', '_ts_anomal.nc')
 
-            cdo.subc(avg_61_90_val, input=nc_ensmean_out, output=nc_anomal)
-            print(nc_anomal)
+                year_range = "-selyear,1961/1990"
+                avg_61_90_val = cdo.timmean(input=year_range+" "+nc_ensmean_out, output=nc_avg_61_90, options='-f nc', returnCdf=True).variables[index+"ETCCDI"][0, 0, 0]
+
+                cdo.subc(avg_61_90_val, input=nc_ensmean_out, output=nc_anomal)
+                print(nc_anomal)
 
 
 def merge_index():
-    for index, index_path in get_subdirs(indices_output_dir):
+    for index_l, index_path in get_subdirs(indices_output_dir):
         for region, region_path in get_subdirs(index_path):
             for rcp, rcp_path in get_subdirs(region_path):
-                # merge_seasons(rcp_path)
-                merge_ts(rcp_path, index+"ETCCDI", region)
+                if index_l != index:
+                    continue
+
+                if index_l == "sdii":
+                    merge_periods(rcp_path, index_l, do_seasons=True, do_sub=True)
+                    merge_ts(rcp_path, index+"ETCCDI", region, do_anom=True)
+
+                elif index_l == "r95p":
+                    merge_periods(rcp_path, index_l, do_seasons=False, do_sub=True)
+                    merge_ts(rcp_path, index+"ETCCDI", region, do_anom=True)
+
+                elif index_l == "tx90p":
+                    # merge_periods(rcp_path, index_l, do_seasons=False, do_sub=False)
+                    merge_ts(rcp_path, index+"ETCCDI", region, do_anom=False)
 
 
 def graph_map():
-    bounds = [-0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]  # 11 colors
-    colors = ['red', 'firebrick', 'tomato', 'salmon', 'lightcoral',
-              'lightsalmon', 'papayawhip', 'snow', 'paleturquoise', 'skyblue', 'lightskyblue',
-              'steelblue', 'dodgerblue', 'blue', 'darkblue']
-    for index, index_path in get_subdirs(indices_output_dir):
+    # bounds = [-0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]  # for sdii
+    # bounds = [-30, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300]                  # for r95p
+    bounds = [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 41, 44, 50]                       # for tx90p
+    # colors = ['red', 'firebrick', 'tomato', 'salmon', 'lightcoral',                            # for sdii and r95p
+    #          'lightsalmon', 'papayawhip', 'snow', 'paleturquoise', 'skyblue', 'lightskyblue',
+    #          'steelblue', 'dodgerblue', 'blue', 'darkblue']
+    colors = ['navy', 'blue', 'mediumblue', 'dodgerblue', 'deepskyblue', 'lightskyblue',         # for tx90p
+              'lightblue', 'moccasin', 'yellow', 'gold', 'orange', 'darkorange',
+              'coral', 'tomato', 'red', 'darkred']
+
+    for index_l, index_path in get_subdirs(indices_output_dir):
+        if index_l != index:
+            continue
+
         param = index+"ETCCDI"
         for region, region_path in get_subdirs(index_path):
             for rcp, rcp_path in get_subdirs(region_path):
@@ -235,7 +361,7 @@ def graph_map():
                     for file, file_path in get_subfiles(season_path):
                         if file.startswith("._"):
                             pass
-                        elif file.endswith("sub.nc"):  # if files ends with _sub.nc is the result of a substraction, and needs to be graphed
+                        elif file.endswith(".nc"):  # if files ends with _sub.nc is the result of a substraction, and needs to be graphed
                             for period in period_name_array:
                                 if period in file:
                                     title = index + " in the " + period + " for season " + season + " in region " + region
@@ -243,7 +369,10 @@ def graph_map():
 
 
 def graph_ts():
-    for index, index_path in get_subdirs(indices_output_dir):
+    for index_l, index_path in get_subdirs(indices_output_dir):
+        if index_l != index:
+            continue
+
         param = index+"ETCCDI"
         for region, region_path in get_subdirs(index_path):
             for rcp, rcp_path in get_subdirs(region_path):
@@ -251,9 +380,9 @@ def graph_ts():
                 for file, file_path in get_subfiles(rcp_path):
                     if file.startswith("._"):
                         continue
-                    elif file.endswith("anomal.nc"):  # if files ends with anomal.nc is the result of a substraction, and needs to be graphed
+                    elif file.endswith("ts.nc"):  # if files ends with anomal.nc is the result of a substraction, and needs to be graphed
                         files_to_plot.append(file_path)
-                plot_time_series(files_to_plot, param, region)
+                plot_time_series(files_to_plot, png_name_in=rcp_path+"/"+index+"_ts_ref.png", param_in=param, region=region, h_line=10)
 
 # __________________Here starts the script ______________________
 
@@ -264,7 +393,8 @@ parser.add_argument("-l", "--loop", help="Loop all the models and calculates the
 parser.add_argument("-m", "--merge", help="Merge the index from all the models", action="store_true")
 parser.add_argument("-g", "--graph", help="Graph the merged index", action="store_true")
 parser.add_argument("-v", "--verbose", help="Enable verbose", action="store_true")
-parser.add_argument("-i", "--index", help="Index to calculate\nPossile values: sdii")
+parser.add_argument("-i", "--index", help="Index to calculate\nPossile values: sdii, r95p")
+parser.add_argument("-r", "--rcp", help="rcp experiment: posisble values: rcp45, rcp85, tx90p")
 
 args = parser.parse_args()
 
@@ -272,14 +402,32 @@ if len(sys.argv) == 1:
     parser.print_help()
     sys.exit()
 
-index = ""
-req_pr = ""
-if args.index == "sdii":
-    index = "sdii"
+index = args.index
+if args.index == "sdii" or args.index == "r95p":
     req_param = "pr"
 
-experiment_array = ["/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/histo_rcp45_pr_daily_converted",
-                    "/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/histo_rcp85_pr_daily_converted"]
+    if args.rcp == "rcp45":
+        experiment = "/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/histo_rcp45_pr_daily_converted"
+    elif args.rcp == "rcp85":
+        experiment = "/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/histo_rcp85_pr_daily_converted"
+    else:
+        parser.print_help()
+        sys.exit()
+
+elif args.index == "tx90p":
+    req_param = "tasmax"
+
+    if args.rcp == "rcp45":
+        experiment = "/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/histo_rcp45_tmasmin_daily_converted"
+    elif args.rcp == "rcp85":
+        experiment = "/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/histo_rcp85_tmasmin_daily_converted"
+    else:
+        parser.print_help()
+        sys.exit()
+
+else:
+    parser.print_help()
+    sys.exit()
 
 indices_output_dir = "/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/"
 
@@ -305,7 +453,7 @@ if args.full or args.merge:
 
 if args.full or args.graph:
     print("Creating graphs")
-    # graph_map()
-    graph_ts()
+    graph_map()
+    #graph_ts()
 
 print("FINISHED")
