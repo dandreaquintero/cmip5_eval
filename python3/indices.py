@@ -255,7 +255,7 @@ def merge_periods(rcp_path, index, do_seasons=False, do_sub=False):
                 index_file_regrid = index_file.replace('.nc', '_regrid.nc')
                 target_grid_file = rcp_path + '/target_grid.nc'
 
-                cdo.remapbil(target_grid_file, input=index_file, output=index_file_regrid, froce=False) # regrid to target grid
+                cdo.remapbil(target_grid_file, input=index_file, output=index_file_regrid, froce=False)  # regrid to target grid
 
                 index_all_models += index_file_regrid + ' '
 
@@ -281,7 +281,7 @@ def merge_periods(rcp_path, index, do_seasons=False, do_sub=False):
             print("\n\n")
 
 
-def merge_ts(rcp_path, param, region, do_anom=False):
+def merge_ts(rcp_path, param, region, do_anom=False):     # ts= timeseries
     array_all_models = ""
     file_path_list = []
     for model, model_path in get_subdirs(rcp_path+"/models/"):
@@ -290,22 +290,30 @@ def merge_ts(rcp_path, param, region, do_anom=False):
                 continue
 
             elif file.endswith("ts.nc"):  # check if end is ts.nc which means it is a time series and needs to be ensembled
-                array_all_models += file_path + ' '
-                if "CESM1-CAM5" not in file:
-                    file_path_list.append(file_path)  # only to plot individually for debbugging
+                # if "CESM1-CAM5" not in file:
+                nc_avg_61_90 = file_path.replace('_ts.nc', '_avg_61_90.nc')
+                nc_anomal = file_path.replace('_ts.nc', '_ts_anomal.nc')
+
+                year_range = "-selyear,1961/1990"
+                avg_61_90_val = cdo.timmean(input=year_range+" "+file_path, output=nc_avg_61_90, options='-f nc', returnCdf=True).variables[index+"ETCCDI"][0, 0, 0]
+
+                cdo.subc(avg_61_90_val, input=file_path, output=nc_anomal)  # substract il file 61-90
+
+                array_all_models += nc_anomal + ' '
+                file_path_list.append(nc_anomal)  # only to plot individually for debbugging
 
     if array_all_models == '':
         print("No files found in %s" % rcp_path)
     else:
-        plot_time_series(file_path_list, png_name_in=rcp_path + '/' + index + "_allModels_ts.png", param_in=param, region=region, h_line=10)
-        percentil_array = ["25", "50", "75", "mean"]  # median = 50th percentil
+        plot_time_series(file_path_list, png_name_in=rcp_path + '/' + index + "_allModels_ts_anom.png", param_in=param, region=region, h_line=0)
+        percentil_array = ["25", "50", "75"]  # median = 50th percentil
         for percentil in percentil_array:
             nc_ensmean_out = rcp_path + '/' + index + '_percent_' + percentil + '_ts.nc'
 
             if percentil == "mean":
                 cdo.ensmean(input=array_all_models, output=nc_ensmean_out, options='-f nc', force=True, returnCdf=False)
             else:
-                cdo.enspctl(percentil, input=array_all_models, output=nc_ensmean_out, options='-f nc', force=True, returnCdf=False)
+                cdo.enspctl(percentil, input=array_all_models, output=nc_ensmean_out, options='-f nc', force=True, returnCdf=False)  # Ensemble percentiles
 
             if do_anom:
                 # find anomalie
@@ -315,19 +323,20 @@ def merge_ts(rcp_path, param, region, do_anom=False):
                 year_range = "-selyear,1961/1990"
                 avg_61_90_val = cdo.timmean(input=year_range+" "+nc_ensmean_out, output=nc_avg_61_90, options='-f nc', returnCdf=True).variables[index+"ETCCDI"][0, 0, 0]
 
-                cdo.subc(avg_61_90_val, input=nc_ensmean_out, output=nc_anomal)
+                cdo.subc(avg_61_90_val, input=nc_ensmean_out, output=nc_anomal)  # substract il file 61-90
                 print(nc_anomal)
 
 
 def merge_index():
     for index_l, index_path in get_subdirs(indices_output_dir):
+        if index_l != index:
+            continue
         for region, region_path in get_subdirs(index_path):
             for rcp, rcp_path in get_subdirs(region_path):
-                if index_l != index:
+                if rcp != args.rcp:
                     continue
-
                 if index_l == "sdii":
-                    merge_periods(rcp_path, index_l, do_seasons=True, do_sub=True)
+                    # merge_periods(rcp_path, index_l, do_seasons=True, do_sub=True)
                     merge_ts(rcp_path, index+"ETCCDI", region, do_anom=True)
 
                 elif index_l == "r95p":
@@ -380,9 +389,12 @@ def graph_ts():
                 for file, file_path in get_subfiles(rcp_path):
                     if file.startswith("._"):
                         continue
-                    elif file.endswith("ts.nc"):  # if files ends with anomal.nc is the result of a substraction, and needs to be graphed
+                    # elif file.endswith("ts.nc"):  # if files ends with anomal.nc is the result of a substraction, and needs to be graphed
+                    elif file.endswith("ts_anomal.nc"):  # if files ends with anomal.nc is the result of a substraction, and needs to be graphed
                         files_to_plot.append(file_path)
-                plot_time_series(files_to_plot, png_name_in=rcp_path+"/"+index+"_ts_ref.png", param_in=param, region=region, h_line=10)
+                # plot_time_series(files_to_plot, png_name_in=rcp_path+"/"+index+"_ts.png", param_in=param, region=region, h_line=0)
+                plot_time_series(files_to_plot, png_name_in=rcp_path+"/"+index+"_anomal.png", param_in=param, region=region, h_line=0)
+
 
 # __________________Here starts the script ______________________
 
@@ -453,7 +465,7 @@ if args.full or args.merge:
 
 if args.full or args.graph:
     print("Creating graphs")
-    graph_map()
-    #graph_ts()
+    #graph_map()
+    graph_ts()
 
 print("FINISHED")

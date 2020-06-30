@@ -412,9 +412,14 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
     if param_in is None:
         return
 
-    plt.figure(region+' '+param_in, figsize=(15, 6))
+    date_fill = []
+    p25 = []
+    p75 = []
 
     for file_path_in in file_path_in_array:
+
+        plt.figure(region+' '+param_in, figsize=(15, 6))
+        print("plot_time_series "+file_path_in)
 
         data_in = Dataset(file_path_in, mode='r')
 
@@ -437,8 +442,20 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
 
         window = 10  # date [x:-y], where x+y = window - 1
         param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
-        plt.plot(date[5:145], param_scaled_smoothed[:140],  label=pathlib.Path(file_path_in).stem)  # .split("day_")[1].split("_histo")[0])
-        plt.plot(date[144:-4], param_scaled_smoothed[139:], label=pathlib.Path(file_path_in).stem)  # .split("day_")[1].split("_histo")[0])
+
+        plt.plot(date[5:145], param_scaled_smoothed[:140], 'k')  #label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+
+        if "25" in file_path_in:
+            p25 = param_scaled_smoothed[139:]
+            plt.plot(date[144:-4], param_scaled_smoothed[139:], 'g--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+        elif "75" in file_path_in:
+            p75 = param_scaled_smoothed[139:]
+            date_fill = date[144:-4]
+            plt.plot(date[144:-4], param_scaled_smoothed[139:], 'g--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+        else:
+            plt.plot(date[144:-4], param_scaled_smoothed[139:], 'g', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+
+
 
         plt.ylabel("%s Anomaly (%s)" % (data_in.variables[param_in].long_name,
                                         data_in.variables[param_in].units))
@@ -446,8 +463,15 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
         plt.ticklabel_format(useOffset=False, axis='y')
         plt.xlabel("Time")
         plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly '+'in the ' + region + ' region (smoothed)', fontweight='bold')
+        data_in.close()
 
-    plt.legend(loc=(0, 0), fontsize=7, frameon=True, ncol=11,  bbox_to_anchor=(0, -0.5))  # Legend for smoothed
+    # Shade the area between y1 and y2
+    plt.fill_between(date_fill, p25, p75,
+                    facecolor="g", # The fill color
+                    #color='',       # The outline color
+                    alpha=0.2)          # Transparency of the fill
+
+    plt.legend()#loc=(0, 0), fontsize=7, frameon=True, ncol=11,  bbox_to_anchor=(0, -0.5))  # Legend for smoothed
     plt.tight_layout(rect=[0, 0, 1, 1])
 
     # add horizontal line at y=0
@@ -457,8 +481,10 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
     plt.axvspan(dt.datetime(1961, 1, 1), dt.datetime(1990, 12, 30), color='b', alpha=0.1)
 
     plt.grid(b=True, linestyle='--', linewidth=1)
+    #plt.show()
+
     if png_name_in is None:
         plt.show()
     else:
+        print(png_name_in)
         plt.savefig(png_name_in, dpi=150)
-    data_in.close()
