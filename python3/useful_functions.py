@@ -412,9 +412,12 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
     if param_in is None:
         return
 
-    date_fill = []
-    p25 = []
-    p75 = []
+    date_fill = None
+    rcp45_p25_fill = None
+    rcp45_p75_fill = None
+
+    rcp85_p25_fill = None
+    rcp85_p75_fill = None
 
     for file_path_in in file_path_in_array:
 
@@ -445,17 +448,25 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
 
         plt.plot(date[5:145], param_scaled_smoothed[:140], 'k')  #label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
 
-        if "25" in file_path_in:
-            p25 = param_scaled_smoothed[139:]
+        if "25" in file_path_in and "45" in file_path_in:
+            rcp45_p25_fill = param_scaled_smoothed[139:]
             plt.plot(date[144:-4], param_scaled_smoothed[139:], 'g--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-        elif "75" in file_path_in:
-            p75 = param_scaled_smoothed[139:]
+        elif "75" in file_path_in and "45" in file_path_in:
+            rcp45_p75_fill = param_scaled_smoothed[139:]
             date_fill = date[144:-4]
             plt.plot(date[144:-4], param_scaled_smoothed[139:], 'g--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-        else:
+        elif "45" in file_path_in:
             plt.plot(date[144:-4], param_scaled_smoothed[139:], 'g', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
 
-
+        if "25" in file_path_in and "85" in file_path_in:
+            rcp85_p25_fill = param_scaled_smoothed[139:]
+            plt.plot(date[144:-4], param_scaled_smoothed[139:], 'r--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+        elif "75" in file_path_in and "85" in file_path_in:
+            rcp85_p75_fill = param_scaled_smoothed[139:]
+            date_fill = date[144:-4]
+            plt.plot(date[144:-4], param_scaled_smoothed[139:], 'r--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+        elif "85" in file_path_in:
+            plt.plot(date[144:-4], param_scaled_smoothed[139:], 'r', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
 
         plt.ylabel("%s Anomaly (%s)" % (data_in.variables[param_in].long_name,
                                         data_in.variables[param_in].units))
@@ -465,9 +476,15 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
         plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly '+'in the ' + region + ' region (smoothed)', fontweight='bold')
         data_in.close()
 
-    # Shade the area between y1 and y2
-    plt.fill_between(date_fill, p25, p75,
+    if rcp45_p25_fill is not None:
+        plt.fill_between(date_fill, rcp45_p25_fill, rcp45_p75_fill,
                     facecolor="g", # The fill color
+                    #color='',       # The outline color
+                    alpha=0.2)          # Transparency of the fill
+
+    if rcp85_p25_fill is not None:
+        plt.fill_between(date_fill, rcp85_p25_fill, rcp85_p75_fill,
+                    facecolor="r", # The fill color
                     #color='',       # The outline color
                     alpha=0.2)          # Transparency of the fill
 

@@ -214,7 +214,7 @@ def loop_models():
                             if "rcp45" in experiment:
                                 output_dir = indices_output_dir + '/' + index + '/' + region + '/rcp45/models/' + model
                             elif "rcp85" in experiment:
-                                first_year = "1996"  # To avoid calculating indices again for the historical data
+                                # first_year = "1996"  # To avoid calculating indices again for the historical data
                                 output_dir = indices_output_dir + '/' + index + '/' + region + '/rcp85/models/' + model
 
                             pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -336,7 +336,7 @@ def merge_index():
                 if rcp != args.rcp:
                     continue
                 if index_l == "sdii":
-                    # merge_periods(rcp_path, index_l, do_seasons=True, do_sub=True)
+                    merge_periods(rcp_path, index_l, do_seasons=True, do_sub=True)
                     merge_ts(rcp_path, index+"ETCCDI", region, do_anom=True)
 
                 elif index_l == "r95p":
@@ -366,6 +366,8 @@ def graph_map():
         param = index+"ETCCDI"
         for region, region_path in get_subdirs(index_path):
             for rcp, rcp_path in get_subdirs(region_path):
+                if rcp != args.rcp:
+                    continue
                 for season, season_path in get_subdirs(rcp_path):
                     for file, file_path in get_subfiles(season_path):
                         if file.startswith("._"):
@@ -384,16 +386,22 @@ def graph_ts():
 
         param = index+"ETCCDI"
         for region, region_path in get_subdirs(index_path):
+            #files_to_plot = []
             for rcp, rcp_path in get_subdirs(region_path):
+                if rcp != args.rcp:
+                    continue
                 files_to_plot = []
                 for file, file_path in get_subfiles(rcp_path):
                     if file.startswith("._"):
                         continue
-                    # elif file.endswith("ts.nc"):  # if files ends with anomal.nc is the result of a substraction, and needs to be graphed
-                    elif file.endswith("ts_anomal.nc"):  # if files ends with anomal.nc is the result of a substraction, and needs to be graphed
+                    elif file.endswith("ts.nc"):  # if files ends with anomal.nc is the result of a substraction, and needs to be graphed
+                    # elif file.endswith("ts_anomal.nc"):  # if files ends with anomal.nc is the result of a substraction, and needs to be graphed
                         files_to_plot.append(file_path)
-                # plot_time_series(files_to_plot, png_name_in=rcp_path+"/"+index+"_ts.png", param_in=param, region=region, h_line=0)
-                plot_time_series(files_to_plot, png_name_in=rcp_path+"/"+index+"_anomal.png", param_in=param, region=region, h_line=0)
+                        print(file_path)
+                plot_time_series(files_to_plot, png_name_in=rcp_path+"/"+index+"_ts.png", param_in=param, region=region, h_line=0)
+
+            #plot_time_series(files_to_plot, png_name_in=region_path+"/"+index+"_ts.png", param_in=param, region=region, h_line=0)
+            #plot_time_series(files_to_plot, png_name_in=region_path+"/"+index+"_ts_anomal.png", param_in=param, region=region, h_line=0)
 
 
 # __________________Here starts the script ______________________
@@ -465,7 +473,7 @@ if args.full or args.merge:
 
 if args.full or args.graph:
     print("Creating graphs")
-    #graph_map()
+    # graph_map()
     graph_ts()
 
 print("FINISHED")
