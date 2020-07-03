@@ -11,6 +11,8 @@ parser.add_argument("--rcp45", help="Merges Historical to rcp45", action="store_
 parser.add_argument("--rcp85", help="Merges Historical to rcp85", action="store_true")
 parser.add_argument("--force", help="If set, forces cdo to overwrite", action="store_true")
 parser.add_argument("--verb", help="Enable verbose", action="store_true")
+parser.add_argument("--pr", help="merge pr", action="store_true")
+parser.add_argument("--temp", help="merge temp", action="store_true")
 args = parser.parse_args()
 
 if len(sys.argv) == 1:
@@ -19,24 +21,54 @@ if len(sys.argv) == 1:
 
 nc_dir = "/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/"
 
-histo_path = "historical_pr_daily_converted"
-rcp45_path = "rcp45_pr_daily_converted"
-rcp85_path = "rcp85_pr_daily_converted"
+if args.pr:
 
-histo_rcp45_merge = "histo_rcp45_pr_daily_converted"
-histo_rcp85_merge = "histo_rcp85_pr_daily_converted"
+    histo_path = "historical_pr_daily_converted"
+    rcp45_path = "rcp45_pr_daily_converted"
+    rcp85_path = "rcp85_pr_daily_converted"
 
-if args.rcp45:
-    rcp_path = rcp45_path
-    merge_path = histo_rcp45_merge
+    histo_rcp45_merge = "histo_rcp45_pr_daily_converted"
+    histo_rcp85_merge = "histo_rcp85_pr_daily_converted"
 
-if args.rcp85:
-    rcp_path = rcp85_path
-    merge_path = histo_rcp85_merge
+    if args.rcp45:
+        rcp_path = rcp45_path
+        merge_path = histo_rcp45_merge
+
+    elif args.rcp85:
+        rcp_path = rcp85_path
+        merge_path = histo_rcp85_merge
+
+    else:
+        parser.print_help()
+        sys.exit()
+
+elif args.temp:
+    histo_path = "historical_tmasmin_daily_converted"
+    rcp45_path = "rcp45_tmasmin_daily_converted"
+    rcp85_path = "rcp85_tmasmin_daily_converted"
+
+    histo_rcp45_merge = "histo_rcp45_tmasmin_daily_converted"
+    histo_rcp85_merge = "histo_rcp85_tmasmin_daily_converted"
+
+    if args.rcp45:
+        rcp_path = rcp45_path
+        merge_path = histo_rcp45_merge
+
+    elif args.rcp85:
+        rcp_path = rcp85_path
+        merge_path = histo_rcp85_merge
+
+    else:
+        parser.print_help()
+        sys.exit()
+else:
+    parser.print_help()
+    sys.exit()
 
 cdo = Cdo()
 if args.verb:
     cdo.degub = True
+
 
 for model_histo, model_histo_path in get_subdirs(nc_dir+histo_path):
     # loop of all parameters inside each model

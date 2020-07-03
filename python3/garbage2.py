@@ -396,7 +396,7 @@ def plot_basemap_regions(nc_in, png_name_in, param_in, region_in, title_in, cdo,
     plt.close()
 
 
-def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region=None, h_line=None):
+def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region=None, h_line=None, lat=0, lon=0):
     '''
     plot_time_series ...
     '''
@@ -404,19 +404,9 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
     from useful_functions import findScaleOffset
     from netcdftime import utime
     import matplotlib.pyplot as plt
-    import matplotlib.dates as date_plt
     from useful_functions import moving_average
     from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
     import datetime as dt  # Python standard library datetime  module
-    from bisect import bisect_left
-    import logging
-
-    logger = logging.getLogger('root')
-    FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-    logging.basicConfig(format=FORMAT)
-    logger.setLevel(logging.DEBUG)
-
-    plot_each = True
 
     # Read time and param vars
     if param_in is None:
@@ -429,17 +419,10 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
     rcp85_p25_fill = None
     rcp85_p75_fill = None
 
-    histo_date_fill = None
-    histo_rcp45_p25_fill = None
-    histo_rcp45_p75_fill = None
-
-    histo_rcp85_p25_fill = None
-    histo_rcp85_p75_fill = None
-
     for file_path_in in file_path_in_array:
 
         plt.figure(region+' '+param_in, figsize=(15, 6))
-        logger.debug("plot_time_series "+file_path_in)
+        print("plot_time_series "+file_path_in)
 
         data_in = Dataset(file_path_in, mode='r')
 
@@ -455,130 +438,80 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
 
         cdftime = utime(time_uni, calendar=time_cal)
         date = [cdftime.num2date(t) for t in time]
-
+        print("plot_time_series "+file_path_in)
         # ############# A plot of Maximum precipitation ##############
 
-        # plt.plot(date, param_scaled[:, 0, 0], label=model)
+        plt.plot(date, param_scaled[:, lat, lon], alpha=0.5, label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0l)
 
-        days_2006 = 57160.5 # 2006 value in time:units = "days since 1850-1-1 00:00:00" ; time:calendar = "standard" ;'
-        index_2006 = bisect_left(time, days_2006)
+        window = 10  # date [x:-y], where x+y = window - 1
+        param_scaled_smoothed = moving_average(arr=param_scaled[:, lat, lon], win=window)
+        plt.plot(date[5:-4], param_scaled_smoothed, 'k')
+        #plt.plot(date[5:145], param_scaled_smoothed[:140], 'k')  #label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
 
-        half_window = 60  # 60-5
-        window = half_window * 2
-        date_start = half_window
-        date_end = half_window - 1 # date [x:-y], where x+y = window - 1
+        if True:#"25" in file_path_in and "45" in file_path_in:
+            rcp45_p25_fill = param_scaled_smoothed[139:]
+            #plt.plot(date[144:-4], param_scaled_smoothed[139:], 'g--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+        elif "75" in file_path_in and "45" in file_path_in:
+            rcp45_p75_fill = param_scaled_smoothed[139:]
+            date_fill = date[144:-4]
+            #plt.plot(date[144:-4], param_scaled_smoothed[139:], 'g--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+        elif "45" in file_path_in:
+            plt.plot(date[144:-4], param_scaled_smoothed[139:], 'g', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
 
-        param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
+        if "25" in file_path_in and "85" in file_path_in:
+            rcp85_p25_fill = param_scaled_smoothed[139:]
+            #plt.plot(date[144:-4], param_scaled_smoothed[139:], 'r--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+        elif "75" in file_path_in and "85" in file_path_in:
+            rcp85_p75_fill = param_scaled_smoothed[139:]
+            date_fill = date[144:-4]
+            #plt.plot(date[144:-4], param_scaled_smoothed[139:], 'r--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+        elif "85" in file_path_in:
+            plt.plot(date[144:-4], param_scaled_smoothed[139:], 'r', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
 
-        if "25" in file_path_in and "rcp45" in file_path_in:
-            rcp45_p25_fill = param_scaled_smoothed[index_2006-1-date_end-1:]
-            histo_rcp45_p25_fill = param_scaled_smoothed[:index_2006-date_start]
-
-            # plt.plot(date[index_2006-1:-date_end], param_scaled_smoothed[index_2006-1-date_end-1:], 'g--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-        elif "75" in file_path_in and "rcp45" in file_path_in:
-            rcp45_p75_fill = param_scaled_smoothed[index_2006-1-date_end-1:]
-            date_fill = date[index_2006-1:-date_end]
-            histo_rcp45_p75_fill = param_scaled_smoothed[:index_2006-date_start]
-            histo_date_fill = date[date_start:index_2006]
-            # plt.plot(date[index_2006-1:-date_end], param_scaled_smoothed[index_2006-1-date_end-1:], 'g--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-        elif "rcp45" in file_path_in:
-            plt.plot(date[date_start   : index_2006],  param_scaled_smoothed[:index_2006-date_start], 'k')  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-            plt.plot(date[index_2006-1 : -date_end],   param_scaled_smoothed[index_2006-1-date_end-1:], 'g', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-
-
-        if "25" in file_path_in and "rcp85" in file_path_in:
-            rcp85_p25_fill = param_scaled_smoothed[index_2006-1-date_end-1:]
-            histo_rcp85_p25_fill = param_scaled_smoothed[:index_2006-date_start]
-            # plt.plot(date[index_2006-1:-date_end], param_scaled_smoothed[index_2006-1-date_end-1:], 'r--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-        elif "75" in file_path_in and "rcp85" in file_path_in:
-            rcp85_p75_fill = param_scaled_smoothed[index_2006-1-date_end-1:]
-            date_fill = date[index_2006-1:-date_end]
-            histo_rcp85_p75_fill = param_scaled_smoothed[:index_2006-date_start]
-            histo_date_fill = date[date_start:index_2006]
-            # plt.plot(date[index_2006-1:-date_end], param_scaled_smoothed[index_2006-1-date_end-1:], 'r--', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-        elif "rcp85" in file_path_in:
-            plt.plot(date[index_2006-1:-date_end], param_scaled_smoothed[index_2006-1-date_end-1:], 'r', label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-            plt.plot(date[date_start:index_2006], param_scaled_smoothed[:index_2006-date_start], 'k')  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-
-        # plt.ylabel("%s Anomaly (%s)" % (data_in.variables[param_in].long_name,
-        #                                data_in.variables[param_in].units))
-        #plt.ylabel("Exceedance rate (%)")  # TX90P
-        plt.ylabel( data_in.variables[param_in].units)  # R95P, SDII, RX5DAY, SDII
-        #plt.ylabel("Days")  # FD
+        plt.ylabel("%s Anomaly (%s)" % (data_in.variables[param_in].long_name,
+                                        data_in.variables[param_in].units))
 
         plt.ticklabel_format(useOffset=False, axis='y')
-        plt.xlabel("Year")
+        plt.xlabel("Time")
         plt.title('Annual '+data_in.variables[param_in].long_name+' Anomaly '+'in the ' + region + ' region (smoothed)', fontweight='bold')
         data_in.close()
 
-        ############## TO PLOT each model ############
-        # if plot_each:
-        #     plt.legend()#loc=(0, 0), fontsize=7, frameon=True, ncol=11,  bbox_to_anchor=(0, -0.5))  # Legend for smoothed
-        #     plt.tight_layout(rect=[0, 0, 1, 1])
-        #
-        #     # add horizontal line at y=0
-        #     if h_line is not None:
-        #         plt.axhline(y=h_line, color='k')
-        #     # highligth 1961 to 1990 range
-        #     plt.axvspan(dt.datetime(1961, 1, 1), dt.datetime(1990, 12, 30), color='b', alpha=0.1)
-        #
-        #     plt.grid(b=True, linestyle='--', linewidth=1)
-        #     plt.show()
+        plt.legend()
+        # add horizontal line at y=0
+        if h_line is not None:
+            plt.axhline(y=h_line, color='k')
+        # highligth 1961 to 1990 range
+        plt.axvspan(dt.datetime(1961, 1, 1), dt.datetime(1990, 12, 30), color='b', alpha=0.1)
+
+        plt.grid(b=True, linestyle='--', linewidth=1)
+        plt.show()
 
     if rcp45_p25_fill is not None:
         plt.fill_between(date_fill, rcp45_p25_fill, rcp45_p75_fill,
-                         facecolor="g",    # The fill color
-                         # color='',       # The outline color
-                         alpha=0.2)        # Transparency of the fill
+                    facecolor="g", # The fill color
+                    #color='',       # The outline color
+                    alpha=0.2)          # Transparency of the fill
 
     if rcp85_p25_fill is not None:
         plt.fill_between(date_fill, rcp85_p25_fill, rcp85_p75_fill,
-                         facecolor="r",    # The fill color
-                         # color='',       # The outline color
-                         alpha=0.2)        # Transparency of the fill
+                    facecolor="r", # The fill color
+                    #color='',       # The outline color
+                    alpha=0.2)          # Transparency of the fill
 
-    if histo_rcp45_p25_fill is not None:
-        plt.fill_between(histo_date_fill, histo_rcp45_p25_fill, histo_rcp45_p75_fill,
-                         facecolor="k",    # The fill color
-                         # color='',       # The outline color
-                         alpha=0.1)
-
-    if histo_rcp85_p25_fill is not None:
-        plt.fill_between(histo_date_fill, histo_rcp85_p25_fill, histo_rcp85_p75_fill,
-                         facecolor="k",   # The fill color
-                         # color='',      # The outline color
-                         alpha=0.1)       # Transparency of the fill
-
-    # plt.legend(loc=(0, 0), fontsize=7, frameon=True, ncol=11,  bbox_to_anchor=(0, -0.5))  # Legend for smoothed
+    plt.legend()#loc=(0, 0), fontsize=7, frameon=True, ncol=11,  bbox_to_anchor=(0, -0.5))  # Legend for smoothed
     plt.tight_layout(rect=[0, 0, 1, 1])
 
     # add horizontal line at y=0
     if h_line is not None:
-        plt.axhline(y=h_line, color='b', alpha=0.5, linestyle='--')
-        # logger.debug(list(plt.yticks()[0]))
-        # plt.yticks(list(plt.yticks()[0]) + [h_line])
+        plt.axhline(y=h_line, color='k')
     # highligth 1961 to 1990 range
     plt.axvspan(dt.datetime(1961, 1, 1), dt.datetime(1990, 12, 30), color='b', alpha=0.1)
 
     plt.grid(b=True, linestyle='--', linewidth=1)
-
-    # cdftime = utime(time_uni, calendar=time_cal)
-    # date = [cdftime.num2date(time[140])]
-    # dates = [dt.datetime(1861,1,1),
-    #          dt.datetime(1890,1,1),
-    #          dt.datetime(1961,1,1),
-    #          dt.datetime(1990,1,1),
-    #          dt.datetime(2006,1,1),
-    #          dt.datetime(2061,1,1),
-    #          dt.datetime(2090,1,1)]
-    #
-    # dates_plot = [date_plt.date2num(date) for date in dates]
-    # plt.xticks(dates_plot)
-
-    # plt.show()
+    #plt.show()
 
     if png_name_in is None:
-        plt.show()
+        pass#plt.show()
     else:
-        logger.debug(png_name_in)
+        print(png_name_in)
         plt.savefig(png_name_in, dpi=150)
