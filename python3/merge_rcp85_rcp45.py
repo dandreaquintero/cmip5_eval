@@ -6,34 +6,8 @@ import pathlib
 import argparse
 import sys
 
-# parser = argparse.ArgumentParser()
-# parser.add_argument("--rcp45", help="Merges Historical to rcp45", action="store_true")
-# parser.add_argument("--rcp85", help="Merges Historical to rcp85", action="store_true")
-# parser.add_argument("--force", help="If set, forces cdo to overwrite", action="store_true")
-# parser.add_argument("--verb", help="Enable verbose", action="store_true")
-# args = parser.parse_args()
-#
-# if len(sys.argv) == 1:
-#     parser.print_help()
-#     sys.exit()
-#
 nc_dir = "/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/"
-index_dir = "indices/sdii"
-#
-# histo_path = "historical_pr_daily_converted"
-# rcp45_path = "rcp45_pr_daily_converted"
-# rcp85_path = "rcp85_pr_daily_converted"
-#
-# histo_rcp45_merge = "histo_rcp45_pr_daily_converted"
-# histo_rcp85_merge = "histo_rcp85_pr_daily_converted"
-#
-# if args.rcp45:
-#     rcp_path = rcp45_path
-#     merge_path = histo_rcp45_merge
-#
-# if args.rcp85:
-#     rcp_path = rcp85_path
-#     merge_path = histo_rcp85_merge
+index_dir = "indices/r30mm"
 
 cdo = Cdo()
 cdo.degub = True
@@ -71,7 +45,7 @@ for region, region_path in get_subdirs(nc_dir+index_dir):
             print("no files in rcp path")
             continue
 
-        file_merge = file_rcp85_path.replace("1996", "1861")
+        file_merge = file_rcp85_path.replace("2005", "1861")
         print(file_merge)
         print("")
 

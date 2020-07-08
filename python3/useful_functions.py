@@ -233,7 +233,8 @@ def moving_average(arr, win=3):
     '''
 
     import numpy as np
-
+    if win == 0:
+        return arr
     ret = np.cumsum(arr, dtype=float)
     ret[win:] = ret[win:] - ret[:-win]
     return ret[win - 1:] / win
@@ -414,7 +415,7 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
     logger = logging.getLogger('root')
     FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
     logging.basicConfig(format=FORMAT)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.debug())
 
     plot_each = True
 
@@ -555,7 +556,7 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
     # add horizontal line at y=0
     if h_line is not None:
         plt.axhline(y=h_line, color='b', alpha=0.5, linestyle='--')
-        # logger.debug(list(plt.yticks()[0]))
+        # logger.debug(clean((clean((list(plt.yticks()[0]))))))
         # plt.yticks(list(plt.yticks()[0]) + [h_line])
     # highligth 1961 to 1990 range
     plt.axvspan(dt.datetime(1961, 1, 1), dt.datetime(1990, 12, 30), color='b', alpha=0.1)
@@ -580,5 +581,5 @@ def plot_time_series(file_path_in_array, png_name_in=None, param_in=None, region
     if png_name_in is None:
         plt.show()
     else:
-        logger.debug(png_name_in)
+        logger.debug((png_name_in))
         plt.savefig(png_name_in, dpi=150)
