@@ -1,7 +1,8 @@
 # this file contains the possible indices and their information
 # the key is the standard index name (as in etccdi)
 
-from indices_loop_functions import selyear_index, direct_periods_index, percentile_index, duration_percentile_index, normal_index, delete_days, manual_index, generate_periods, generate_ts
+from indices_loop_functions import selyear_index, direct_periods_index, percentile_index, duration_percentile_index, normal_index, delete_days, manual_index
+from indices_loop_functions import gsl_index, generate_periods, generate_ts
 from indices_merge_functions import merge_periods, merge_ts
 
 indices = {
@@ -29,7 +30,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'min'
     },
 
 
@@ -117,10 +119,29 @@ indices = {
 
 
     'gsl': {
-        'cdo_name': 'gslETCCDI',
+        'name': 'gsl',
+        'cdo_name': 'thermal_growing_season_length',
         'description': '5. growing season length: annual (1st jan to 31st dec in northern hemisphere (nh), 1st july to 30th june in southern hemisphere (sh)) count'\
                        'between first span of at least 6 days with daily mean temperature tg>5oc and first span after july 1st (jan 1st in sh) of 6 days with tg<5oc.',
+        'short_desc': 'Growing Season Length (GSL)',
         'param': ['tasmin', 'tasmax'],
+
+        'ignore': ['Andes'],
+        'seasons': ['ANN'],
+        'loop_functions': [gsl_index, generate_periods, generate_ts],
+
+        'do_anom': True,
+        'merge_functions': [merge_periods, merge_ts],
+
+        'do_rel': True,
+        'hline': 0,
+        'colorbar': 'temp_pos',
+        'units': 'Days',
+        'min_perc': 15,
+        'max_perc': 85,
+        'min_perc_rel': 25,
+        'max_perc_rel': 75,
+        'datatip': 'max'
     },
 
 
@@ -492,13 +513,52 @@ indices = {
     },
 
 
-
     'dtr': {
+        'name': 'dtr',
         'cdo_name': 'dtrETCCDI',
         'description': '16. daily temperature range: monthly mean difference between tx and tn.',
+        'short_desc': 'Daily Temperature Range (DTR)',
         'param': ['tasmin', 'tasmax'],
-    },
 
+        'cdo_fun': ' -chunit,K,C -monmean -sub  ',
+        'long_name': '\"Monthly mean difference between Tx and Tn.\"',
+        'seasons': ['ANN'],
+        'do_month': True,
+        'loop_functions': [manual_index, generate_periods, generate_ts],
+
+        'do_anom': True,
+        'merge_functions': [merge_periods, merge_ts],
+
+        'do_rel': False,
+        'hline': 0,
+        'colorbar': 'temp_pos',
+        'units': 'Temperature [°C]',
+        'min_perc': 1,
+        'max_perc': 99,
+    },
+    'dtry': {
+        'name': 'dtry',
+        'cdo_name': 'dtryETCCDI',
+        'description': '16. daily temperature range: annual mean difference between tx and tn.',
+        'short_desc': 'Daily Temperature Range (DTR)',
+        'param': ['tasmax', 'tasmin'],
+
+        'cdo_fun': ' -chunit,K,C -yearmean -sub  ',
+        'long_name': '\"Annual mean difference between Tx and Tn.\"',
+        'seasons': ['ANN'],
+        'do_month': False,
+        'loop_functions': [manual_index, generate_periods, generate_ts],
+
+        'do_anom': True,
+        'merge_functions': [merge_periods, merge_ts],
+
+        'do_rel': False,
+        'hline': 0,
+        'colorbar': 'temp_pos',
+        'units': 'Temperature [°C]',
+        'min_perc': 1,
+        'max_perc': 99,
+    },
 
 
     'rx1day': {

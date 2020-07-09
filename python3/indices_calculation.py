@@ -15,13 +15,19 @@ def loop_models():
     for experiment in experiment_set:
         # loop of all models inside the experiment folder
         for model, model_path in get_subdirs(experiment):
-            if 'ignore' in index and [model, args.rcp] in index['ignore']:  # this model/rcp should not be used for this index
+            param_path_list = {}
+            if 'ignore' in index_in and [model, args.rcp] in index_in['ignore']:  # this model/rcp should not be used for this index
                 continue
             # loop of all parameters inside each model
             for param, param_path in get_subdirs(model_path):
                 # if the param is the required one for the index
-                if param in index['param']:
+                if param in index_in['param']:
                     for region, region_path in get_subdirs(param_path):
+                        if 'ignore' in index_in and region in index_in['ignore']:
+                            continue
+
+                        if region not in param_path_list.keys():
+                            param_path_list[region] = [''] * (len(index_in['param']) + 1)  # 1 more for the out_dir
                         # loop all files inside the param path
                         for file, file_path in get_subfiles(region_path):
 
@@ -31,32 +37,43 @@ def loop_models():
                             elif file.endswith(".nc"):  # check if file is .nc
                                 output_dir = None
                                 if "rcp45" in experiment:
-                                    output_dir = indices_output_dir + '/' + index['name'] + '/' + region + '/rcp45/models/' + model
+                                    output_dir = indices_output_dir + '/' + index_in['name'] + '/' + region + '/rcp45/models/' + model
                                 elif "rcp85" in experiment:
-                                    output_dir = indices_output_dir + '/' + index['name'] + '/' + region + '/rcp85/models/' + model
+                                    output_dir = indices_output_dir + '/' + index_in['name'] + '/' + region + '/rcp85/models/' + model
 
                                 pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-                                for function in index['loop_functions']:
-                                    function(index=index, cdo=cdo, out_dir=output_dir, nc_in=file_path)
+                                if len(index_in['param']) == 1:
+                                    for function in index_in['loop_functions']:
+                                        function(index=index_in, cdo=cdo, out_dir=output_dir, nc_in=file_path)
+                                else:  # index with multiple param
+                                    param_path_list[region][-1] = output_dir
+                                    param_path_list[region][index_in['param'].index(param)] = file_path
+
+            for region, paths in param_path_list.items():
+                for function in index_in['loop_functions']:
+                    if paths[-1] != '' and paths[0] != '' and paths[1] != '':
+                        function(index=index_in, cdo=cdo, out_dir=paths[-1], nc_in=paths[0], nc_in2=paths[1])
+                    else:
+                        debug(clean("Missign param for out_dir: " + paths[-1]))
 
 
 def merge_index(periods=False, ts=False):
     # loop indices folders until we find the one we want to merge
     for index_l, index_path in get_subdirs(indices_output_dir):
-        if index_l != index['name']:
+        if index_l != index_in['name']:
             continue
         for region, region_path in get_subdirs(index_path):
             # loop rcps folders until we find the one we want to merge
             for rcp, rcp_path in get_subdirs(region_path):
                 if rcp != args.rcp:
                     continue
-                # for function in index['merge_functions']:
-                #    function(cdo=cdo, rcp_path=rcp_path, index=index)
+                # for function in index_in['merge_functions']:
+                #    function(cdo=cdo, rcp_path=rcp_path, index=index_in)
                 if periods:
-                    merge_periods(cdo=cdo, rcp_path=rcp_path, index=index)
+                    merge_periods(cdo=cdo, rcp_path=rcp_path, index=index_in)
                 if ts:
-                    merge_ts(cdo=cdo, rcp_path=rcp_path, index=index)
+                    merge_ts(cdo=cdo, rcp_path=rcp_path, index=index_in)
 
 
 def graph_map():
@@ -65,7 +82,7 @@ def graph_map():
     from netCDF4 import Dataset
 
     for index_l, index_path in get_subdirs(indices_output_dir):
-        if index_l != index['name']:
+        if index_l != index_in['name']:
             continue
 
         # first find the minumum and maximum for the index
@@ -78,49 +95,49 @@ def graph_map():
         max_list_rel = []
         min_list_rel = []
         for region, region_path in get_subdirs(index_path):
-            if 'ignore' in index and region in index['ignore']:
+            if 'ignore' in index_in and region in index_in['ignore']:
                 continue
             for rcp, rcp_path in get_subdirs(region_path):
                 for season, season_path in get_subdirs(rcp_path):
                     for file, file_path in get_subfiles(season_path):
                         if file.startswith("._"):
                             pass
-                        elif (file.endswith("sub.nc") and index['do_anom']) or (file.endswith('.nc') and 'reference' not in file and not index['do_anom']):
+                        elif (file.endswith("sub.nc") and index_in['do_anom']) or (file.endswith('.nc') and 'reference' not in file and not index_in['do_anom']):
                             if any(period in file for period in period_name_array):
                                 fh = Dataset(file_path, 'r')
-                                param = fh.variables[index['cdo_name']][0:, :, :]
+                                param = fh.variables[index_in['cdo_name']][0:, :, :]
                                 max_list.append(np.amax(param))
                                 min_list.append(np.amin(param))
                                 fh.close()
                         elif file.endswith("sub_rel.nc"):
                             if any(period in file for period in period_name_array):
                                 fh = Dataset(file_path, 'r')
-                                param = fh.variables[index['cdo_name']][0:, :, :]
+                                param = fh.variables[index_in['cdo_name']][0:, :, :]
                                 max_list_rel.append(np.amax(param))
                                 min_list_rel.append(np.amin(param))
                                 fh.close()
                         elif 'reference' in file and file.endswith('.nc'):
                             fh = Dataset(file_path, 'r')
-                            param = fh.variables[index['cdo_name']][0:, :, :]
+                            param = fh.variables[index_in['cdo_name']][0:, :, :]
                             max_list_ref.append(np.amax(param))
                             min_list_ref.append(np.amin(param))
                             fh.close()
 
         # The min and max may be extremes that would make the graph hard to read.
         # Instead use percentiles.
-        min_sub = np.percentile(np.array(min_list), index['min_perc'])
-        max_sub = np.percentile(np.array(max_list), index['max_perc'])
+        min_sub = np.percentile(np.array(min_list), index_in['min_perc'])
+        max_sub = np.percentile(np.array(max_list), index_in['max_perc'])
 
         min_ref = min(min_list_ref)
         max_ref = max(max_list_ref)
 
-        if not index['do_anom']:  # for indices with implicit anomaly, it is better to use the same scale for reference period and other periods
+        if not index_in['do_anom']:  # for indices with implicit anomaly, it is better to use the same scale for reference period and other periods
             min_ref = min_sub
             max_ref = max_sub
 
-        if (index['do_rel']):
-            min_rel = np.percentile(np.array(min_list_rel), index['min_perc_rel'])
-            max_rel = np.percentile(np.array(max_list_rel), index['max_perc_rel'])
+        if (index_in['do_rel']):
+            min_rel = np.percentile(np.array(min_list_rel), index_in['min_perc_rel'])
+            max_rel = np.percentile(np.array(max_list_rel), index_in['max_perc_rel'])
 
         # plot
         for region, region_path in get_subdirs(index_path):
@@ -142,17 +159,17 @@ def graph_map():
 
                         if file.startswith("._"):
                             pass
-                        elif (file.endswith("sub.nc") and index['do_anom']) or (file.endswith('.nc') and 'reference' not in file and not index['do_anom']):
-                            plot_basemap_regions(index, file_path, file_path.replace(".nc", ".png"), region, title, min_sub, max_sub)
+                        elif (file.endswith("sub.nc") and index_in['do_anom']) or (file.endswith('.nc') and 'reference' not in file and not index_in['do_anom']):
+                            plot_basemap_regions(index_in, file_path, file_path.replace(".nc", ".png"), region, title, min_sub, max_sub)
 
                         elif 'reference' in file and file.endswith('.nc'):
-                            plot_basemap_regions(index, file_path, file_path.replace(".nc", ".png"), region, title, min_ref, max_ref)
+                            plot_basemap_regions(index_in, file_path, file_path.replace(".nc", ".png"), region, title, min_ref, max_ref)
 
-                        elif 'ignore' in index and region in index['ignore']:
+                        elif 'ignore' in index_in and region in index_in['ignore']:
                             continue
 
-                        elif file.endswith("sub_rel.nc") and index['do_rel']:
-                            plot_basemap_regions(index, file_path, file_path.replace(".nc", ".png"), region, title, min_rel, max_rel)
+                        elif file.endswith("sub_rel.nc") and index_in['do_rel']:
+                            plot_basemap_regions(index_in, file_path, file_path.replace(".nc", ".png"), region, title, min_rel, max_rel)
 
 
 def graph_ts():
@@ -161,7 +178,7 @@ def graph_ts():
     from netCDF4 import Dataset
 
     for index_l, index_path in get_subdirs(indices_output_dir):
-        if index_l != index['name']:
+        if index_l != index_in['name']:
             continue
 
         # first find the minumum and maximum for the index
@@ -181,13 +198,13 @@ def graph_ts():
                         continue
                     elif file.endswith("ts.nc"):
                         fh = Dataset(file_path, 'r')
-                        param = fh.variables[index['cdo_name']][:, 0, 0]
+                        param = fh.variables[index_in['cdo_name']][:, 0, 0]
                         max_list.append(np.amax(param))
                         min_list.append(np.amin(param))
                         fh.close()
                     elif file.endswith("Avg6190.nc"):
                         fh = Dataset(file_path, 'r')
-                        avg6190[region] = fh.variables[index['cdo_name']][0, 0, 0]
+                        avg6190[region] = fh.variables[index_in['cdo_name']][0, 0, 0]
                         fh.close()
 
                 # all models
@@ -196,9 +213,9 @@ def graph_ts():
                         if file.startswith("._"):
                             continue
 
-                        elif (file.endswith("ts_anomal.nc") and index['do_anom']) or (file.endswith('ts.nc') and not index['do_anom']):
+                        elif (file.endswith("ts_anomal.nc") and index_in['do_anom']) or (file.endswith('ts.nc') and not index_in['do_anom']):
                             fh = Dataset(file_path, 'r')
-                            param = fh.variables[index['cdo_name']][:, 0, 0]
+                            param = fh.variables[index_in['cdo_name']][:, 0, 0]
                             max_list_models.append(np.amax(param))
                             min_list_models.append(np.amin(param))
                             fh.close()
@@ -214,10 +231,10 @@ def graph_ts():
                     elif file.endswith("ts.nc"):
                         files_to_plot.append(file_path)
                         debug(clean((file_path)))
-            plot_time_series(index, files_to_plot, models_plot_array=models_plot[region], region=region,
-                             png_name_in=region_path+"/"+index['name']+'_'+region+'_Models_ts.png', min=min(min_list_models), max=max(max_list_models), avg6190=avg6190[region])
-            plot_time_series(index, files_to_plot, region=region,
-                             png_name_in=region_path+"/"+index['name']+'_'+region+'_ts.png', min=min(min_list), max=max(max_list), avg6190=avg6190[region])
+            plot_time_series(index_in, files_to_plot, models_plot_array=models_plot[region], region=region,
+                             png_name_in=region_path+"/"+index_in['name']+'_'+region+'_Models_ts.png', min=min(min_list_models), max=max(max_list_models), avg6190=avg6190[region])
+            plot_time_series(index_in, files_to_plot, region=region,
+                             png_name_in=region_path+"/"+index_in['name']+'_'+region+'_ts.png', min=min(min_list), max=max(max_list), avg6190=avg6190[region])
 
 # __________________Here starts the script ______________________
 
@@ -238,14 +255,14 @@ if len(sys.argv) == 1:
 
 if args.index not in indices:
     debug(clean(("Index not supported. Here is a list of the supported indeces: ")))
-    debug(clean((list(indices.keys()))))
+    debug(list(indices.keys()))
     sys.exit()
-index = indices[args.index]
-debug(clean((index['name'] + ": " + index['description'])))
-debug(clean(("Required Parameter(s): " + str(index['param']))))
+index_in = indices[args.index]
+debug(clean((index_in['name'] + ": " + index_in['description'])))
+debug(clean(("Required Parameter(s): " + str(index_in['param']))))
 
-if 'cdo_fun' in index:
-    debug(clean((index['cdo_fun'])))
+if 'cdo_fun' in index_in:
+    debug(clean((index_in['cdo_fun'])))
 
 if args.rcp not in rcp_paths:
     debug(clean(("RCP not supported. Here is a list of the supported RCPs:")))
@@ -253,7 +270,7 @@ if args.rcp not in rcp_paths:
     sys.exit()
 
 experiment_set = set([])
-for param in index['param']:
+for param in index_in['param']:
     experiment_set.add(rcp_paths[args.rcp][param])
 debug(clean(("Experiment Path: " + str(experiment_set))))
 

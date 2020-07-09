@@ -2,7 +2,7 @@
 # As there are different types of indices, several functions are required.
 
 
-def selyear_index(cdo, index, out_dir, nc_in):
+def selyear_index(cdo, index, out_dir, nc_in, nc_in2=None):
     '''
     For indexes that need a selyear to generate a timeseries, like sdii
     '''
@@ -72,7 +72,7 @@ def selyear_index(cdo, index, out_dir, nc_in):
         logger.debug(clean(("Error: %s" % (e.strerror))))
 
 
-def direct_periods_index(cdo, index, out_dir, nc_in):
+def direct_periods_index(cdo, index, out_dir, nc_in, nc_in2=None):
     '''
     For indices that give a single value for the timeperiod, like sdii
     Generate given index for the following 4 periods:
@@ -125,7 +125,7 @@ def direct_periods_index(cdo, index, out_dir, nc_in):
                                    output=nc_out, options='-f nc', force=False, returnCdf=False)
 
 
-def percentile_index(cdo, index, out_dir, nc_in):
+def percentile_index(cdo, index, out_dir, nc_in, nc_in2=None):
     '''
     Calculate percentile indices.
     For temperature indices that require bootstrapping first calculates ydrunmin and ydrunmax (if not already generated)
@@ -168,7 +168,7 @@ def percentile_index(cdo, index, out_dir, nc_in):
     logger.debug(clean(("")))
 
 
-def duration_percentile_index(cdo, index, out_dir, nc_in):
+def duration_percentile_index(cdo, index, out_dir, nc_in, nc_in2=None):
     '''
     Calculate histogram indices.
     This indices are calculated in three steps:
@@ -211,7 +211,7 @@ def duration_percentile_index(cdo, index, out_dir, nc_in):
     print("")
 
 
-def normal_index(cdo, index, out_dir, nc_in):
+def normal_index(cdo, index, out_dir, nc_in, nc_in2=None):
     '''
     Calculate "normal" indices, that generate a matrix out, without needing any additional input parameters
     '''
@@ -232,7 +232,7 @@ def normal_index(cdo, index, out_dir, nc_in):
     index_cdo_function(add_params, input=add_command+nc_in, output=nc_out_normal, options='-f nc', force=False, returnCdf=False)
 
 
-def delete_days(cdo, index, out_dir, nc_in):
+def delete_days(cdo, index, out_dir, nc_in, nc_in2=None):
     '''
     Delete wrongly generated days in rx5day index monthly
     '''
@@ -253,13 +253,16 @@ def delete_days(cdo, index, out_dir, nc_in):
             cdo.delete("day=17", input="-delete,month=16,hour=12 "+nc_out_days, output=file_path, options='-f nc', force=False, returnCdf=False)
 
 
-def manual_index(cdo, index, out_dir, nc_in):
+def manual_index(cdo, index, out_dir, nc_in, nc_in2=None):
     '''
     Calculate indices manually
     '''
 
     from indices_misc import logger, clean
     import pathlib
+
+    if nc_in2 is not None:  # index with two parameters
+        nc_in += " "+nc_in2
 
     nc_out = (out_dir + '/' + pathlib.Path(nc_in).stem + "_"+index['name']+".nc")
 
@@ -270,7 +273,28 @@ def manual_index(cdo, index, out_dir, nc_in):
                output=nc_out, options='-f nc', force=False, returnCdf=False)
 
 
-def generate_periods(cdo, index, out_dir, nc_in=None):
+def gsl_index(cdo, index, out_dir, nc_in, nc_in2=None):
+    '''
+    For gsl index, which requires some special calculation
+    '''
+    from indices_misc import debug, clean
+    import pathlib
+
+    tasmin = nc_in
+    tasmax = nc_in2
+
+    nc_out_gsl = (out_dir + '/' + pathlib.Path(nc_in).stem + "_"+index['name']+".nc")
+
+    debug(clean(nc_out_gsl))
+
+    # For some reason, the etccdi operator gives error:  etccdi_gsl (Abort): Operator not callable by this name! Name is: etccdi_gsl
+    # cdo.etccdi_gsl(input="-divc,2 -add " + tasmin + " " + tasmax + " -gtc,1 " + tasmax, output=nc_out_gsl, force=False, returnCdf=False)
+
+    # use eca. Eca needs as second input a landmask. As the regions we are using are already in land, just produce a file with all 1s.
+    cdo.eca_gsl(input="-divc,2 -add " + tasmin + " " + tasmax + " -addc,1 -mulc,0 -setmisstoc,1 -seltimestep,1 " + tasmax, output=nc_out_gsl, force=False, returnCdf=False)
+
+
+def generate_periods(cdo, index, out_dir, nc_in=None, nc_in2=None):
     '''
     Generate a map of the index, for the required time periods, starting from matrix
     '''
@@ -294,7 +318,7 @@ def generate_periods(cdo, index, out_dir, nc_in=None):
                     cdo.timmean(input="-setreftime,1850-01-01,00:00:00 "+cdo_year_command + " " + file_path, output=nc_out, options='-f nc', force=False, returnCdf=False)
 
 
-def generate_ts(cdo, index, out_dir, nc_in=None):
+def generate_ts(cdo, index, out_dir, nc_in=None, nc_in2=None):
     '''
     Generate timeseries of the index, for the whole area, starting from matrix
     '''

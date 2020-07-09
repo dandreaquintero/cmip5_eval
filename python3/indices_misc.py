@@ -4,7 +4,7 @@ import logging
 def clean(message=None):
     if message is None:
         return
-    return message.replace('/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/indices/', '')
+    return message.replace('/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/', '').replace('indices/', '')
 
 
 # Logger functionality format

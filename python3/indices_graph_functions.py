@@ -117,6 +117,49 @@ def plot_basemap_regions(index, nc_in, png_name_in, region_in, title, min, max, 
     plt.close()
 
 
+def annot_max(index, x, y, text, color, num, ax=None):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import datetime as dt  # Python standard library datetime  module
+
+    if 'datatip' not in index:
+        return
+    if index['datatip'] == 'min':
+        xmax = x[np.argmin(y)]
+        ymax = y.min()
+    elif index['datatip'] == 'max':
+        xmax = x[np.argmax(y)]
+        ymax = y.max()
+    else:
+        return
+
+    text = text+"{:.1f}".format(ymax)
+    if not ax:
+        ax = plt.gca()
+    ylim = ax.get_ylim()[1]
+    bbox_props = dict(boxstyle="round,pad=0.3", fc=color, ec="k", lw=0.72, zorder=7)
+    arrowprops = dict(arrowstyle="->", connectionstyle="angle3,angleA=0,angleB=90", zorder=6)
+    kw = dict(xycoords='data',   # extcoords="axes fraction",
+              arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top", zorder=5, fontsize=9)
+    ann = ax.annotate(text, xy=(xmax, ymax), xytext=(dt.datetime(2109, 1, 1), ymax+num*(ylim-ymax)/3), **kw)
+    return ann
+
+
+def annot_avg(text):
+    import matplotlib.pyplot as plt
+    import datetime as dt  # Python standard library datetime  module
+
+    if text is None:
+        return
+    ax = plt.gca()
+    ylim = ax.get_ylim()[1]
+    bbox_props = dict(boxstyle="round,pad=0.3", fc='lavender', ec="k", lw=0.72, zorder=7)
+    kw = dict(xycoords='data',   # extcoords="axes fraction",
+              bbox=bbox_props, ha="right", va="top", zorder=5, fontsize=9)
+    ann = ax.annotate(text, xy=(dt.datetime(1990, 1, 1), 0), xytext=(dt.datetime(2109, 1, 1), ylim), **kw)
+    return ann
+
+
 def plot_time_series(index, file_path_in_array, models_plot_array=None, region=None, png_name_in=None, min=None, max=None, avg6190=None):
     '''
     plot_time_series ...
@@ -158,13 +201,15 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
     fig, ax = plt.subplots(figsize=(15, 6))
 
     if 'do_month' in index and index['do_month']:
-        #half_window = half_window*12  # for months
+        # half_window = half_window*12  # for months
         half_window = 6  # 1years
 
     # date [x:-y], where x+y = window - 1
     window = half_window * 2
     date_start = half_window
     date_end = half_window - 1
+
+    to_annotate = []
 
     #  plot all models, in low alpha, in the background (zorder=1)
     if models_plot_array is not None:
@@ -236,11 +281,12 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
             # plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],  'silver', zorder=4)
 
         elif "rcp45" in file_path_in:
+            plt.plot(date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'g', label="RCP45", zorder=4)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+            to_annotate.append([date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'palegreen', 1])
             if show_each:
                 plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4, label=pathlib.Path(file_path_in).stem.split("45")[0]) #.split("_histo")[0])
             else:
-                plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4, label="Historical")
-            plt.plot(date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'g', label="RCP45", zorder=4)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+                plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4)
 
         if "25" in file_path_in and "rcp85" in file_path_in:
             rcp85_p25_fill = param_scaled_smoothed[index_2006-1-date_end-1:]
@@ -258,10 +304,11 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
 
         elif "rcp85" in file_path_in:
             plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'r', label="RCP85", zorder=4)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+            to_annotate.append([date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'lightsalmon', 2])
             if show_each:
                 plt.plot(date[date_start:index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4, label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
             else:
-                plt.plot(date[date_start:index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+                plt.plot(date[date_start:index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4, label="Historical")  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
 
         data_in.close()
 
@@ -321,7 +368,9 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
     else:
         secaxy = ax.secondary_yaxis('right', functions=(lambda x: (x*100)/abs(avg6190), lambda x: (x*abs(avg6190))/100))
         secaxy.set_ylabel('Relative change [%]', fontweight='bold')
-        plt.title(index['short_desc'].split('(')[1].split(')')[0]+"[1961:1990] = "+str(int(avg6190))+"           ", loc='right', fontsize=10)
+
+    # if avg6190 is not None:
+    #     plt.title(index['short_desc'].split('(')[1].split(')')[0]+" [1961:1990] = "+str(round(float(avg6190), 1))+"           ", loc='right', fontsize=10)
 
     # highligth periods
     plt.axvspan(dt.datetime(1961, 1, 1), dt.datetime(1990, 12, 30), color='b', alpha=0.05)
@@ -346,13 +395,14 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
     plt.xticks(dates_plot)
     # format the ticks
     years_fmt = date_plt.DateFormatter('%Y')
-
     ax.xaxis.set_major_formatter(years_fmt)
+    plt.xlim(dt.datetime(1861,  1,  1), dt.datetime(2110,  1,  1))
+
     # plt.ticklabel_format(useOffset=True, axis='y')
     plt.title(index['short_desc'], fontweight='bold')
     if region is not None:
         plt.title("         "+region, loc='left', fontsize=10)
-        plt.legend(loc='upper left')
+        plt.legend(loc='upper left', fancybox=True, facecolor='papayawhip')
 
     if 'do_month' in index and index['do_month']:
         plt.xlabel("Month", fontweight='bold')
@@ -364,13 +414,44 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
     if png_name_in is None:
         plt.show()
     else:
+
+        nice_name = index['short_desc'].split('(')[1].split(')')[0] + ' = '
+        if avg6190 is not None:
+            avg_name = (index['short_desc'].split('(')[1].split(')')[0]+" [1961:1990] = "+str(round(float(avg6190), 1)))
+        else:
+            avg_name = None
+
         debug(clean((png_name_in)))
+        ann_list = []
+        for [x, y, color, num] in to_annotate:
+            ann_list.append(annot_max(index, x, y, nice_name, color, num))
+        ann_list.append(annot_avg(avg_name))
         plt.savefig(png_name_in.replace('.png', '_ind.png'), dpi=150, bbox_inches="tight")
+
+        for ann in ann_list:
+            if ann is not None:
+                ann.remove()
 
         if min is not None and max is not None:
             plt.ylim(min, max)
 
+        ann_list = []
+        for [x, y, color, num] in to_annotate:
+            ann_list.append(annot_max(index, x, y, nice_name, color, num))
+        ann_list.append(annot_avg(avg_name))
+
         plt.savefig(png_name_in, dpi=150, bbox_inches="tight")
+
+        for ann in ann_list:
+            if ann is not None:
+                ann.remove()
+
         if 'limits' in index:
             plt.ylim(index['limits'][0], index['limits'][1])
+
+            ann_list = []
+            for [x, y, color, num] in to_annotate:
+                ann_list.append(annot_max(index, x, y, nice_name, color, num))
+            ann_list.append(annot_avg(avg_name))
+
             plt.savefig(png_name_in.replace('.png', '_lim_'+str(index['limits'][1])+'.png'), dpi=150, bbox_inches="tight")
