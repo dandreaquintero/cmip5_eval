@@ -85,18 +85,18 @@ def graph_map():
         if index_l != index_in['name']:
             continue
 
-        # first find the minumum and maximum for the index
-        max_list = []
-        min_list = []
-
-        min_list_ref = []
-        max_list_ref = []
-
-        max_list_rel = []
-        min_list_rel = []
         for region, region_path in get_subdirs(index_path):
             if 'ignore' in index_in and region in index_in['ignore']:
                 continue
+            # first find the minumum and maximum for the index
+            max_list = []
+            min_list = []
+
+            min_list_ref = []
+            max_list_ref = []
+
+            max_list_rel = []
+            min_list_rel = []
             for rcp, rcp_path in get_subdirs(region_path):
                 for season, season_path in get_subdirs(rcp_path):
                     for file, file_path in get_subfiles(season_path):
@@ -123,24 +123,23 @@ def graph_map():
                             min_list_ref.append(np.amin(param))
                             fh.close()
 
-        # The min and max may be extremes that would make the graph hard to read.
-        # Instead use percentiles.
-        min_sub = np.percentile(np.array(min_list), index_in['min_perc'])
-        max_sub = np.percentile(np.array(max_list), index_in['max_perc'])
+            # The min and max may be extremes that would make the graph hard to read.
+            # Instead use percentiles.
+            min_sub = np.percentile(np.array(min_list), index_in['min_perc'])
+            max_sub = np.percentile(np.array(max_list), index_in['max_perc'])
 
-        min_ref = min(min_list_ref)
-        max_ref = max(max_list_ref)
+            min_ref = min(min_list_ref)
+            max_ref = max(max_list_ref)
 
-        if not index_in['do_anom']:  # for indices with implicit anomaly, it is better to use the same scale for reference period and other periods
-            min_ref = min_sub
-            max_ref = max_sub
+            if not index_in['do_anom']:  # for indices with implicit anomaly, it is better to use the same scale for reference period and other periods
+                min_ref = min_sub
+                max_ref = max_sub
 
-        if (index_in['do_rel']):
-            min_rel = np.percentile(np.array(min_list_rel), index_in['min_perc_rel'])
-            max_rel = np.percentile(np.array(max_list_rel), index_in['max_perc_rel'])
+            if (index_in['do_rel']):
+                min_rel = np.percentile(np.array(min_list_rel), index_in['min_perc_rel'])
+                max_rel = np.percentile(np.array(max_list_rel), index_in['max_perc_rel'])
 
-        # plot
-        for region, region_path in get_subdirs(index_path):
+            # plot
             for rcp, rcp_path in get_subdirs(region_path):
                 if rcp != args.rcp:
                     continue
@@ -185,13 +184,17 @@ def graph_ts():
         max_list_models = []
         min_list_models = []
 
-        max_list = []
-        min_list = []
+        max_list = {}
+        min_list = {}
         avg6190 = {}
         models_plot = {}
         for region, region_path in get_subdirs(index_path):
+            if 'ignore' in index_in and region in index_in['ignore']:
+                continue
             avg6190[region] = None
             models_plot[region] = []
+            max_list[region] = []
+            min_list[region] = []
             for rcp, rcp_path in get_subdirs(region_path):
                 for file, file_path in get_subfiles(rcp_path):
                     if file.startswith("._"):
@@ -199,8 +202,8 @@ def graph_ts():
                     elif file.endswith("ts.nc"):
                         fh = Dataset(file_path, 'r')
                         param = fh.variables[index_in['cdo_name']][:, 0, 0]
-                        max_list.append(np.amax(param))
-                        min_list.append(np.amin(param))
+                        max_list[region].append(np.amax(param))
+                        min_list[region].append(np.amin(param))
                         fh.close()
                     elif file.endswith("Avg6190.nc"):
                         fh = Dataset(file_path, 'r')
@@ -223,6 +226,8 @@ def graph_ts():
 
         # plot
         for region, region_path in get_subdirs(index_path):
+            if 'ignore' in index_in and region in index_in['ignore']:
+                continue
             files_to_plot = []
             for rcp, rcp_path in get_subdirs(region_path):
                 for file, file_path in get_subfiles(rcp_path):
@@ -232,9 +237,9 @@ def graph_ts():
                         files_to_plot.append(file_path)
                         debug(clean((file_path)))
             plot_time_series(index_in, files_to_plot, models_plot_array=models_plot[region], region=region,
-                             png_name_in=region_path+"/"+index_in['name']+'_'+region+'_Models_ts.png', min=min(min_list_models), max=max(max_list_models), avg6190=avg6190[region])
+                             png_name_in=region_path+"/"+index_in['name']+'_'+region+'_Models_ts.png', min=min(min_list[region]), max=max(max_list[region]), avg6190=avg6190[region])
             plot_time_series(index_in, files_to_plot, region=region,
-                             png_name_in=region_path+"/"+index_in['name']+'_'+region+'_ts.png', min=min(min_list), max=max(max_list), avg6190=avg6190[region])
+                             png_name_in=region_path+"/"+index_in['name']+'_'+region+'_ts.png', min=min(min_list[region]), max=max(max_list[region]), avg6190=avg6190[region])
 
 # __________________Here starts the script ______________________
 

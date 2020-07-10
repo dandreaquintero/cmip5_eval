@@ -130,6 +130,13 @@ def annot_max(index, x, y, text, color, num, ax=None):
     elif index['datatip'] == 'max':
         xmax = x[np.argmax(y)]
         ymax = y.max()
+    elif index['datatip'] == 'end':
+        xmax = x[-1]
+        ymax = y[-1]
+    elif index['datatip'] == 'endn':
+        xmax = x[-1]
+        ymax = y[-1]
+        num = 1 if num == 2 else 2
     else:
         return
 
@@ -197,17 +204,23 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
 
     days_2006 = 57160.5  # 2006 value in time:units = "days since 1850-1-1 00:00:00" ; time:calendar = "standard" ;'
     half_window = 0  # half of the window for the smoothing, in years
+    half_window2 = 5  # half of the window for the smoothing, in years
 
     fig, ax = plt.subplots(figsize=(15, 6))
 
     if 'do_month' in index and index['do_month']:
         # half_window = half_window*12  # for months
+        # half_window2 = half_window2*12  # for months
         half_window = 6  # 1years
 
     # date [x:-y], where x+y = window - 1
     window = half_window * 2
     date_start = half_window
     date_end = half_window - 1
+
+    window2 = half_window2 * 2
+    date_start2 = half_window2
+    date_end2 = half_window2 - 1
 
     to_annotate = []
 
@@ -234,11 +247,11 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
             param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
 
             if 'rcp45' in model_plot:
-                plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', alpha=0.02, zorder=1)
-                plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'g', alpha=0.04, zorder=1)
+                plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', alpha=0.01, zorder=1)
+                plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'g', alpha=0.02, zorder=1)
             elif 'rcp85' in model_plot:
-                plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', alpha=0.02, zorder=1)
-                plt.plot(date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'r', alpha=0.04, zorder=1)
+                plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', alpha=0.01, zorder=1)
+                plt.plot(date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'r', alpha=0.02, zorder=1)
 
     # plot median, in foreground (zorder = 4), and collect data for the shadows
     for file_path_in in file_path_in_array:
@@ -265,6 +278,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
         index_2006 = bisect_left(time, days_2006)
 
         param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
+        param_scaled_smoothed2 = moving_average(arr=param_scaled[:, 0, 0], win=window2)
 
         if "25" in file_path_in and "rcp45" in file_path_in:
             rcp45_p25_fill = param_scaled_smoothed[index_2006-1-date_end-1:]
@@ -281,8 +295,9 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
             # plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],  'silver', zorder=4)
 
         elif "rcp45" in file_path_in:
-            plt.plot(date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'g', label="RCP45", zorder=4)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-            to_annotate.append([date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'palegreen', 1])
+            plt.plot(date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'g', zorder=4, alpha=0.3)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+            plt.plot(date[index_2006-1: -date_end2 if window2 > 0 else None], param_scaled_smoothed2[index_2006-1-date_end2-1:], 'g', label="RCP45", zorder=5)
+            to_annotate.append([date[index_2006-1: -date_end2 if window2 > 0 else None], param_scaled_smoothed2[index_2006-1-date_end2-1:], 'palegreen', 1])
             if show_each:
                 plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4, label=pathlib.Path(file_path_in).stem.split("45")[0]) #.split("_histo")[0])
             else:
@@ -303,8 +318,9 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
             # plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],  'silver', zorder=4)
 
         elif "rcp85" in file_path_in:
-            plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'r', label="RCP85", zorder=4)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-            to_annotate.append([date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'lightsalmon', 2])
+            plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'r', zorder=4, alpha=0.3)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+            plt.plot(date[index_2006-1: -date_end2 if window2 > 0 else None], param_scaled_smoothed2[index_2006-1-date_end2-1:], 'r', label="RCP45", zorder=5)
+            to_annotate.append([date[index_2006-1: -date_end2 if window2 > 0 else None], param_scaled_smoothed2[index_2006-1-date_end2-1:], 'lightsalmon', 2])
             if show_each:
                 plt.plot(date[date_start:index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4, label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
             else:
@@ -388,6 +404,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
              dt.datetime(1961,  1,  1),
              dt.datetime(1990, 12, 30),
              dt.datetime(2006,  1,  1),
+             dt.datetime(2020,  1,  1),
              dt.datetime(2061,  1,  1),
              dt.datetime(2090, 12, 30)]
 
@@ -402,7 +419,11 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
     plt.title(index['short_desc'], fontweight='bold')
     if region is not None:
         plt.title("         "+region, loc='left', fontsize=10)
-        plt.legend(loc='upper left', fancybox=True, facecolor='papayawhip')
+
+    leg_loc = 'upper left'
+    if 'legend' in index:
+        leg_loc = index['legend']
+    plt.legend(loc=leg_loc, fancybox=True, facecolor='white')
 
     if 'do_month' in index and index['do_month']:
         plt.xlabel("Month", fontweight='bold')

@@ -31,7 +31,8 @@ indices = {
         'max_perc': 85,
         'min_perc_rel': 25,
         'max_perc_rel': 75,
-        'datatip': 'min'
+        'datatip': 'endn',
+        'legend': 'lower left'
     },
 
 
@@ -58,7 +59,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -86,7 +88,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'endn',
     },
 
 
@@ -113,7 +116,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -141,7 +145,8 @@ indices = {
         'max_perc': 85,
         'min_perc_rel': 25,
         'max_perc_rel': 75,
-        'datatip': 'max'
+        'datatip': 'end',
+        'datatip': 'end',
     },
 
 
@@ -169,7 +174,8 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'min_perc_rel': 1,
-        'max_perc_rel': 99
+        'max_perc_rel': 99,
+        'datatip': 'end',
     },
     'txxy': {
         'name': 'txxy',
@@ -194,7 +200,8 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'min_perc_rel': 1,
-        'max_perc_rel': 99
+        'max_perc_rel': 99,
+        'datatip': 'end',
     },
 
 
@@ -222,7 +229,8 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'min_perc_rel': 1,
-        'max_perc_rel': 99
+        'max_perc_rel': 99,
+        'datatip': 'end',
     },
     'tnxy': {
         'name': 'tnxy',
@@ -247,7 +255,8 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'min_perc_rel': 1,
-        'max_perc_rel': 99
+        'max_perc_rel': 99,
+        'datatip': 'end',
     },
 
 
@@ -275,7 +284,8 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'min_perc_rel': 1,
-        'max_perc_rel': 99
+        'max_perc_rel': 99,
+        'datatip': 'end',
     },
     'txny': {
         'name': 'txny',
@@ -300,7 +310,8 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'min_perc_rel': 1,
-        'max_perc_rel': 99
+        'max_perc_rel': 99,
+        'datatip': 'end',
     },
 
 
@@ -328,7 +339,8 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'min_perc_rel': 1,
-        'max_perc_rel': 99
+        'max_perc_rel': 99,
+        'datatip': 'end',
     },
     'tnny': {
         'name': 'tnny',
@@ -353,7 +365,8 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'min_perc_rel': 1,
-        'max_perc_rel': 99
+        'max_perc_rel': 99,
+        'datatip': 'end',
     },
 
 
@@ -380,6 +393,7 @@ indices = {
         'limits': [0, 50],
         'min_perc': 1,
         'max_perc': 99,
+        'datatip': 'end',
     },
 
 
@@ -406,6 +420,7 @@ indices = {
         'limits': [0, 50],
         'min_perc': 1,
         'max_perc': 99,
+        'datatip': 'end',
     },
 
 
@@ -431,6 +446,7 @@ indices = {
         'units': 'Exceedance Rate [%]',
         'min_perc': 1,
         'max_perc': 99,
+        'datatip': 'end',
     },
 
 
@@ -456,6 +472,7 @@ indices = {
         'units': 'Exceedance Rate [%]',
         'min_perc': 1,
         'max_perc': 99,
+        'datatip': 'end',
     },
 
 
@@ -463,8 +480,8 @@ indices = {
     'wsdi': {
         'name': 'wsdi',
         'cdo_name': 'wsdiETCCDI',
-        'description': '14. warm speel duration index: annual count of days with at least 6 consecutive days when tx > 90th percentile.',
-        'short_desc': 'Warm Speel Duration (WSDI)',
+        'description': '14. warm spell duration index: annual count of days with at least 6 consecutive days when tx > 90th percentile.',
+        'short_desc': 'Warm spell Duration (WSDI)',
         'param': ['tasmax'],
 
         'cdo_fun': 'etccdi_wsdi',
@@ -482,7 +499,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -490,8 +508,8 @@ indices = {
     'csdi': {
         'name': 'csdi',
         'cdo_name': 'csdiETCCDI',
-        'description': '15. cold speel duration index: annual count of days with at least 6 consecutive days when tn < 10th percentile.',
-        'short_desc': 'Cold Speel Duration (CSDI)',
+        'description': '15. cold spell duration index: annual count of days with at least 6 consecutive days when tn < 10th percentile.',
+        'short_desc': 'Cold Spell Duration (CSDI)',
         'param': ['tasmin'],
 
         'cdo_fun': 'etccdi_csdi',
@@ -509,7 +527,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -518,7 +537,7 @@ indices = {
         'cdo_name': 'dtrETCCDI',
         'description': '16. daily temperature range: monthly mean difference between tx and tn.',
         'short_desc': 'Daily Temperature Range (DTR)',
-        'param': ['tasmin', 'tasmax'],
+        'param': ['tasmax', 'tasmin'],
 
         'cdo_fun': ' -chunit,K,C -monmean -sub  ',
         'long_name': '\"Monthly mean difference between Tx and Tn.\"',
@@ -535,6 +554,7 @@ indices = {
         'units': 'Temperature [°C]',
         'min_perc': 1,
         'max_perc': 99,
+        'datatip': 'end',
     },
     'dtry': {
         'name': 'dtry',
@@ -558,6 +578,7 @@ indices = {
         'units': 'Temperature [°C]',
         'min_perc': 1,
         'max_perc': 99,
+        'datatip': 'end',
     },
 
 
@@ -584,7 +605,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
 
     },
     'rx1dayy': {
@@ -608,7 +630,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -637,7 +660,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
     'rx5dayy': {
         'name': 'rx5dayy',
@@ -662,7 +686,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -689,7 +714,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -716,7 +742,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -743,7 +770,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -774,7 +802,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -800,7 +829,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -826,7 +856,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -852,7 +883,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -879,7 +911,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -907,7 +940,8 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     },
 
 
@@ -935,6 +969,7 @@ indices = {
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
-        'max_perc_rel': 75
+        'max_perc_rel': 75,
+        'datatip': 'end',
     }
 }
