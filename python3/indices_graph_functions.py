@@ -570,6 +570,12 @@ def plot_bar(index, regions, glob45, glob85, png_name_in, rel=False):
     debug(clean(png_name_in))
     plt.savefig(png_name_in, dpi=150, bbox_inches="tight")
 
+    if 'limit_barplot' in index:
+        plt.ylim(index['limit_barplot'])
+        plt.savefig(png_name_in.replace('.png', '_lim.png'), dpi=150, bbox_inches="tight")
+
+
+
 
 def plot_bar_index(index, files, png_name_in, avg6190):
 

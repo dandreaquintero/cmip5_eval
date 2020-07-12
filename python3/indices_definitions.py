@@ -487,6 +487,8 @@ indices = {
 
         'glob_rcp45': 49,
         'glob_rcp85': 69,
+
+        'limit_barplot': [10, 100]
     },
 
 
@@ -516,6 +518,8 @@ indices = {
 
         'glob_rcp45': 47,
         'glob_rcp85': 67,
+
+        'limit_barplot': [10, 100]
     },
 
 
