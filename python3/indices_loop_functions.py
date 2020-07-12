@@ -250,7 +250,7 @@ def delete_days(cdo, index, out_dir, nc_in, nc_in2=None):
             rename(file_path, nc_out_days)
 
             logger.debug(clean((file_path)))
-            cdo.delete("day=17", input="-delete,month=16,hour=12 "+nc_out_days, output=file_path, options='-f nc', force=False, returnCdf=False)
+            cdo.delete("day=17", input="-delete,month=6,hour=12 "+nc_out_days, output=file_path, options='-f nc', force=False, returnCdf=False)
 
 
 def manual_index(cdo, index, out_dir, nc_in, nc_in2=None):

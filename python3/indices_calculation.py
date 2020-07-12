@@ -4,8 +4,8 @@ from useful_functions import get_subfiles
 import pathlib
 import argparse
 import sys
-from indices_misc import debug, clean, rcp_paths, indices_output_dir, period_name_array, period_title_array
-from indices_graph_functions import plot_basemap_regions, plot_time_series
+from indices_misc import debug, clean, rcp_paths, indices_output_dir, period_name_array, period_title_array, indices_graphs_out_dir
+from indices_graph_functions import plot_basemap_regions, plot_time_series, plot_bar_index
 from indices_definitions import indices
 from indices_merge_functions import merge_periods, merge_ts
 
@@ -241,6 +241,33 @@ def graph_ts():
             plot_time_series(index_in, files_to_plot, region=region,
                              png_name_in=region_path+"/"+index_in['name']+'_'+region+'_ts.png', min=min(min_list[region]), max=max(max_list[region]), avg6190=avg6190[region])
 
+
+def graph_bar():
+    from netCDF4 import Dataset
+
+    for index_l, index_path in get_subdirs(indices_output_dir):
+        if index_l != index_in['name']:
+            continue
+
+        avg6190 = {}
+        files_to_plot = {}
+        for region, region_path in get_subdirs(index_path):
+            if 'ignore' in index_in and region in index_in['ignore']:
+                continue
+            avg6190[region] = None
+            files_to_plot[region] = []
+            for rcp, rcp_path in get_subdirs(region_path):
+                for file, file_path in get_subfiles(rcp_path):
+                    if file.startswith("._"):
+                        continue
+                    elif file.endswith("ts.nc"):
+                        files_to_plot[region].append(file_path)
+                    elif file.endswith("Avg6190.nc"):
+                        fh = Dataset(file_path, 'r')
+                        avg6190[region] = fh.variables[index_in['cdo_name']][0, 0, 0]
+                        fh.close()
+        plot_bar_index(index=index_in, files=files_to_plot, png_name_in=indices_graphs_out_dir+"/"+index_l+"/"+index_in['name']+'_bar.png', avg6190=avg6190)
+
 # __________________Here starts the script ______________________
 
 
@@ -257,6 +284,8 @@ args = parser.parse_args()
 if len(sys.argv) == 1:
     parser.print_help()
     sys.exit()
+
+args.index = str.lower(args.index)
 
 if args.index not in indices:
     debug(clean(("Index not supported. Here is a list of the supported indeces: ")))
@@ -316,6 +345,10 @@ elif args.graph == 'ts':
 elif args.graph == 'map':
     debug(clean(("Creating colormap")))
     graph_map()
+
+elif args.graph == 'bar':
+    debug("Creating barplot")
+    graph_bar()
 
 print()
 debug(clean(("FINISHED")))

@@ -32,7 +32,11 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'endn',
-        'legend': 'lower left'
+        'legend': 'lower left',
+
+        'glob_rcp45': -9,
+        'glob_rcp85': -20,
+        'glob_avg6190': 61,
     },
 
 
@@ -61,6 +65,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 30,
+        'glob_rcp85': 50,
+        'glob_avg6190': 117,
     },
 
 
@@ -90,6 +98,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'endn',
+
+        'glob_rcp45': -7.8,
+        'glob_rcp85': -14,
+        'glob_avg6190': 47,
     },
 
 
@@ -118,6 +130,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 21,
+        'glob_rcp85': 40,
+        'glob_avg6190': 150,
     },
 
 
@@ -146,7 +162,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
-        'datatip': 'end',
+
+        'glob_rcp45': 10.5,
+        'glob_rcp85': 18,
+        'glob_avg6190': 284,
     },
 
 
@@ -202,6 +221,9 @@ indices = {
         'min_perc_rel': 1,
         'max_perc_rel': 99,
         'datatip': 'end',
+
+        'glob_rcp45': 2,
+        'glob_rcp85': 4.0,
     },
 
 
@@ -257,6 +279,9 @@ indices = {
         'min_perc_rel': 1,
         'max_perc_rel': 99,
         'datatip': 'end',
+
+        'glob_rcp45': 2,
+        'glob_rcp85': 4.1,
     },
 
 
@@ -312,6 +337,9 @@ indices = {
         'min_perc_rel': 1,
         'max_perc_rel': 99,
         'datatip': 'end',
+
+        'glob_rcp45': 2.5,
+        'glob_rcp85': 5.0,
     },
 
 
@@ -367,6 +395,9 @@ indices = {
         'min_perc_rel': 1,
         'max_perc_rel': 99,
         'datatip': 'end',
+
+        'glob_rcp45': 2.8,
+        'glob_rcp85': 5.5,
     },
 
 
@@ -394,6 +425,9 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'datatip': 'end',
+
+        'glob_rcp45': 1.0,
+        'glob_rcp85': 0.1,
     },
 
 
@@ -421,6 +455,9 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'datatip': 'end',
+
+        'glob_rcp45': 1.25,
+        'glob_rcp85': 0.5,
     },
 
 
@@ -447,6 +484,9 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'datatip': 'end',
+
+        'glob_rcp45': 49,
+        'glob_rcp85': 69,
     },
 
 
@@ -473,6 +513,9 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'datatip': 'end',
+
+        'glob_rcp45': 47,
+        'glob_rcp85': 67,
     },
 
 
@@ -501,6 +544,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 158,
+        'glob_rcp85': 250,
+        'glob_avg6190': 8,
     },
 
 
@@ -528,7 +575,11 @@ indices = {
         'max_perc': 85,
         'min_perc_rel': 25,
         'max_perc_rel': 75,
-        'datatip': 'end',
+        'datatip': 'endn',
+
+        'glob_rcp45': -7,
+        'glob_rcp85': -7,
+        'glob_avg6190': 7,
     },
 
 
@@ -579,6 +630,8 @@ indices = {
         'min_perc': 1,
         'max_perc': 99,
         'datatip': 'end',
+        'glob_rcp45': -0.09,
+        'glob_rcp85': -0.18,
     },
 
 
@@ -632,6 +685,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 4.2,
+        'glob_rcp85': 9.2,
+        'glob_avg6190': 40.5,
     },
 
 
@@ -688,6 +745,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 7.7,
+        'glob_rcp85': 15,
+        'glob_avg6190': 91.5,
     },
 
 
@@ -716,6 +777,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 0.33,
+        'glob_rcp85': 0.62,
+        'glob_avg6190': 6.17,
     },
 
 
@@ -731,7 +796,7 @@ indices = {
         'seasons': ['ANN'],
         'loop_functions': [normal_index, generate_periods, generate_ts],
 
-        'ignore': [['BCC-CSM1.1', 'rcp45']],
+        'ignore': [['BCC-CSM1.1', 'glob_rcp45']],
         'do_anom': True,
         'merge_functions': [merge_periods, merge_ts],
 
@@ -744,6 +809,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 1.5,
+        'glob_rcp85': 2.5,
+        'glob_avg6190': 29.25,
     },
 
 
@@ -759,7 +828,7 @@ indices = {
         'seasons': ['ANN'],
         'loop_functions': [normal_index, generate_periods, generate_ts],
 
-        'ignore': [['BCC-CSM1.1', 'rcp45'], ['GISS-E2-H', 'rcp85']],
+        'ignore': [['BCC-CSM1.1', 'glob_rcp45'], ['GISS-E2-H', 'glob_rcp85']],
         'do_anom': True,
         'merge_functions': [merge_periods, merge_ts],
 
@@ -772,6 +841,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 0.95,
+        'glob_rcp85': 1.6,
+        'glob_avg6190': 8.8,
     },
 
 
@@ -788,7 +861,7 @@ indices = {
         'add_fun': 'divc',  # the output is not normalized per year
         'add_fun_params': '30',  # to nomralize, divide by the number of years (30)
         'seasons': ['ANN'],
-        'ignore': [['BCC-CSM1.1', 'rcp45']],
+        'ignore': [['BCC-CSM1.1', 'glob_rcp45']],
         'loop_functions': [selyear_index, direct_periods_index],  # div_timeperiod],
 
         'do_anom': True,
@@ -831,6 +904,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': -0.5,
+        'glob_rcp85': -2.4,
+        'glob_avg6190': 149.5,
     },
 
 
@@ -858,6 +935,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 1.25,
+        'glob_rcp85': 3.3,
+        'glob_avg6190': 46,
     },
 
 
@@ -885,6 +966,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 0.28,
+        'glob_rcp85': 0.15,
+        'glob_avg6190': 20.64,
     },
 
 
@@ -913,6 +998,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 50,
+        'glob_rcp85': 100,
+        'glob_avg6190': 219,
     },
 
 
@@ -942,6 +1031,10 @@ indices = {
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 29,
+        'glob_rcp85': 65,
+        'glob_avg6190': 67,
     },
 
 
@@ -956,7 +1049,7 @@ indices = {
         'cdo_fun': ' -yearsum -setrtomiss,-50,1 ',
         'long_name': '\"Annual total precipitation in wet days\"',
         'seasons': ['ANN'],
-        'ignore': [['BCC-CSM1.1', 'rcp45']],
+        'ignore': [['BCC-CSM1.1', 'glob_rcp45']],
         'loop_functions': [manual_index, generate_periods, generate_ts],
 
         'do_anom': True,
@@ -965,11 +1058,15 @@ indices = {
         'do_rel': True,
         'hline': 0,
         'colorbar': 'prec_pos',
-        'units': 'Precipitation [mm]',
+        'units': 'Precipitation [mm/yr]',
         'min_perc': 15,
         'max_perc': 85,
         'min_perc_rel': 25,
         'max_perc_rel': 75,
         'datatip': 'end',
+
+        'glob_rcp45': 42,
+        'glob_rcp85': 75,
+        'glob_avg6190': 1012,
     }
 }

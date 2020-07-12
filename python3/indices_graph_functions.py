@@ -122,6 +122,7 @@ def annot_max(index, x, y, text, color, num, ax=None):
     import matplotlib.pyplot as plt
     import datetime as dt  # Python standard library datetime  module
 
+    div = 3
     if 'datatip' not in index:
         return
     if index['datatip'] == 'min':
@@ -136,6 +137,7 @@ def annot_max(index, x, y, text, color, num, ax=None):
     elif index['datatip'] == 'endn':
         xmax = x[-1]
         ymax = y[-1]
+        div = 7
         num = 1 if num == 2 else 2
     else:
         return
@@ -145,14 +147,14 @@ def annot_max(index, x, y, text, color, num, ax=None):
         ax = plt.gca()
     ylim = ax.get_ylim()[1]
     bbox_props = dict(boxstyle="round,pad=0.3", fc=color, ec="k", lw=0.72, zorder=7)
-    arrowprops = dict(arrowstyle="->", connectionstyle="angle3,angleA=0,angleB=90", zorder=6)
+    arrowprops = dict(arrowstyle="->", connectionstyle="angle3,angleA=0,angleB=90", alpha=0.5, zorder=6)
     kw = dict(xycoords='data',   # extcoords="axes fraction",
               arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top", zorder=5, fontsize=9)
-    ann = ax.annotate(text, xy=(xmax, ymax), xytext=(dt.datetime(2109, 1, 1), ymax+num*(ylim-ymax)/3), **kw)
+    ann = ax.annotate(text, xy=(xmax, ymax), xytext=(dt.datetime(2120, 1, 1), ymax+num*(ylim-ymax)/div), **kw)
     return ann
 
 
-def annot_avg(text):
+def annot_avg(text, index):
     import matplotlib.pyplot as plt
     import datetime as dt  # Python standard library datetime  module
 
@@ -160,10 +162,15 @@ def annot_avg(text):
         return
     ax = plt.gca()
     ylim = ax.get_ylim()[1]
+    if 'datatip' not in index:
+        return
+    if index['datatip'] == 'endn':
+        ylim = ax.get_ylim()[0]
+
     bbox_props = dict(boxstyle="round,pad=0.3", fc='lavender', ec="k", lw=0.72, zorder=7)
     kw = dict(xycoords='data',   # extcoords="axes fraction",
               bbox=bbox_props, ha="right", va="top", zorder=5, fontsize=9)
-    ann = ax.annotate(text, xy=(dt.datetime(1990, 1, 1), 0), xytext=(dt.datetime(2109, 1, 1), ylim), **kw)
+    ann = ax.annotate(text, xy=(dt.datetime(1990, 1, 1), 0), xytext=(dt.datetime(2120, 1, 1), ylim), **kw)
     return ann
 
 
@@ -177,7 +184,6 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
     from netcdftime import utime
     from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
 
-    from useful_functions import findScaleOffset
     from useful_functions import moving_average
 
     from bisect import bisect_left
@@ -231,9 +237,6 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
 
             time = data_in.variables['time'][:]
             param = data_in.variables[index['cdo_name']][:]
-            # Scale var
-            [scal_req, scale_factor, add_offset] = findScaleOffset(data_in, index['cdo_name'])
-            param_scaled = (scale_factor*param)+add_offset
 
             # create time vector
             time_uni = data_in.variables['time'].units
@@ -244,7 +247,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
 
             index_2006 = bisect_left(time, days_2006)
 
-            param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
+            param_scaled_smoothed = moving_average(arr=param[:, 0, 0], win=window)
 
             if 'rcp45' in model_plot:
                 plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', alpha=0.01, zorder=1)
@@ -262,9 +265,6 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
 
         time = data_in.variables['time'][:]
         param = data_in.variables[index['cdo_name']][:]
-        # Scale var
-        [scal_req, scale_factor, add_offset] = findScaleOffset(data_in, index['cdo_name'])
-        param_scaled = (scale_factor*param)+add_offset
 
         # create time vector
         time_uni = data_in.variables['time'].units
@@ -277,55 +277,55 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
 
         index_2006 = bisect_left(time, days_2006)
 
-        param_scaled_smoothed = moving_average(arr=param_scaled[:, 0, 0], win=window)
-        param_scaled_smoothed2 = moving_average(arr=param_scaled[:, 0, 0], win=window2)
+        param_smoothed = moving_average(arr=param[:, 0, 0], win=window)
+        param_smoothed2 = moving_average(arr=param[:, 0, 0], win=window2)
 
         if "25" in file_path_in and "rcp45" in file_path_in:
-            rcp45_p25_fill = param_scaled_smoothed[index_2006-1-date_end-1:]
-            histo_rcp45_p25_fill = param_scaled_smoothed[:index_2006-date_start]
-            # plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'palegreen', zorder=4)
-            # plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],  'silver', zorder=4)
+            rcp45_p25_fill = param_smoothed[index_2006-1-date_end-1:]
+            histo_rcp45_p25_fill = param_smoothed[:index_2006-date_start]
+            # plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_smoothed[index_2006-1-date_end-1:], 'palegreen', zorder=4)
+            # plt.plot(date[date_start: index_2006],  param_smoothed[:index_2006-date_start],  'silver', zorder=4)
 
         elif "75" in file_path_in and "rcp45" in file_path_in:
-            rcp45_p75_fill = param_scaled_smoothed[index_2006-1-date_end-1:]
+            rcp45_p75_fill = param_smoothed[index_2006-1-date_end-1:]
             date_fill = date[index_2006-1:-date_end if window > 0 else None]
-            histo_rcp45_p75_fill = param_scaled_smoothed[:index_2006-date_start]
+            histo_rcp45_p75_fill = param_smoothed[:index_2006-date_start]
             histo_date_fill = date[date_start:index_2006]
-            # plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'palegreen', zorder=4)
-            # plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],  'silver', zorder=4)
+            # plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_smoothed[index_2006-1-date_end-1:], 'palegreen', zorder=4)
+            # plt.plot(date[date_start: index_2006],  param_smoothed[:index_2006-date_start],  'silver', zorder=4)
 
         elif "rcp45" in file_path_in:
-            plt.plot(date[index_2006-1: -date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'g', zorder=4, alpha=0.3)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-            plt.plot(date[index_2006-1: -date_end2 if window2 > 0 else None], param_scaled_smoothed2[index_2006-1-date_end2-1:], 'g', label="RCP45", zorder=5)
-            to_annotate.append([date[index_2006-1: -date_end2 if window2 > 0 else None], param_scaled_smoothed2[index_2006-1-date_end2-1:], 'palegreen', 1])
+            plt.plot(date[index_2006-1: -date_end if window > 0 else None], param_smoothed[index_2006-1-date_end-1:], 'g', zorder=4, alpha=0.3)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+            plt.plot(date[index_2006-1: -date_end2 if window2 > 0 else None], param_smoothed2[index_2006-1-date_end2-1:], 'g', label="RCP45", zorder=5)
+            to_annotate.append([date[index_2006-1: -date_end2 if window2 > 0 else None], param_smoothed2[index_2006-1-date_end2-1:], 'palegreen', 1])
             if show_each:
-                plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4, label=pathlib.Path(file_path_in).stem.split("45")[0]) #.split("_histo")[0])
+                plt.plot(date[date_start: index_2006],  param_smoothed[:index_2006-date_start],   'k', zorder=4, label=pathlib.Path(file_path_in).stem.split("45")[0]) #.split("_histo")[0])
             else:
-                plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4)
+                plt.plot(date[date_start: index_2006],  param_smoothed[:index_2006-date_start],   'k', zorder=4, alpha=0.15)
+                plt.plot(date[date_start2: index_2006],  param_smoothed2[:index_2006-date_start2],  'k', zorder=4, label="Historical")
 
         if "25" in file_path_in and "rcp85" in file_path_in:
-            rcp85_p25_fill = param_scaled_smoothed[index_2006-1-date_end-1:]
-            histo_rcp85_p25_fill = param_scaled_smoothed[:index_2006-date_start]
-            # plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'lightsalmon', zorder=4)
-            # plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],  'silver', zorder=4)
+            rcp85_p25_fill = param_smoothed[index_2006-1-date_end-1:]
+            histo_rcp85_p25_fill = param_smoothed[:index_2006-date_start]
+            # plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_smoothed[index_2006-1-date_end-1:], 'lightsalmon', zorder=4)
+            # plt.plot(date[date_start: index_2006],  param_smoothed[:index_2006-date_start],  'silver', zorder=4)
 
         elif "75" in file_path_in and "rcp85" in file_path_in:
-            rcp85_p75_fill = param_scaled_smoothed[index_2006-1-date_end-1:]
+            rcp85_p75_fill = param_smoothed[index_2006-1-date_end-1:]
             date_fill = date[index_2006-1:-date_end if window > 0 else None]
-            histo_rcp85_p75_fill = param_scaled_smoothed[:index_2006-date_start]
+            histo_rcp85_p75_fill = param_smoothed[:index_2006-date_start]
             histo_date_fill = date[date_start:index_2006]
-            # plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'lightsalmon', zorder=4)
-            # plt.plot(date[date_start: index_2006],  param_scaled_smoothed[:index_2006-date_start],  'silver', zorder=4)
+            # plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_smoothed[index_2006-1-date_end-1:], 'lightsalmon', zorder=4)
+            # plt.plot(date[date_start: index_2006],  param_smoothed[:index_2006-date_start],  'silver', zorder=4)
 
         elif "rcp85" in file_path_in:
-            plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_scaled_smoothed[index_2006-1-date_end-1:], 'r', zorder=4, alpha=0.3)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-            plt.plot(date[index_2006-1: -date_end2 if window2 > 0 else None], param_scaled_smoothed2[index_2006-1-date_end2-1:], 'r', label="RCP45", zorder=5)
-            to_annotate.append([date[index_2006-1: -date_end2 if window2 > 0 else None], param_scaled_smoothed2[index_2006-1-date_end2-1:], 'lightsalmon', 2])
+            plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_smoothed[index_2006-1-date_end-1:], 'r', zorder=4, alpha=0.3)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+            plt.plot(date[index_2006-1: -date_end2 if window2 > 0 else None], param_smoothed2[index_2006-1-date_end2-1:], 'r', label="RCP45", zorder=5)
+            to_annotate.append([date[index_2006-1: -date_end2 if window2 > 0 else None], param_smoothed2[index_2006-1-date_end2-1:], 'lightsalmon', 2])
             if show_each:
-                plt.plot(date[date_start:index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4, label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
+                plt.plot(date[date_start:index_2006],  param_smoothed[:index_2006-date_start],   'k', zorder=4, label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
             else:
-                plt.plot(date[date_start:index_2006],  param_scaled_smoothed[:index_2006-date_start],   'k', zorder=4, label="Historical")  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
-
+                plt.plot(date[date_start:index_2006],  param_smoothed[:index_2006-date_start],   'k', zorder=4, alpha=0.15)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
         data_in.close()
 
         if show_each:
@@ -413,7 +413,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
     # format the ticks
     years_fmt = date_plt.DateFormatter('%Y')
     ax.xaxis.set_major_formatter(years_fmt)
-    plt.xlim(dt.datetime(1861,  1,  1), dt.datetime(2110,  1,  1))
+    plt.xlim(dt.datetime(1861,  1,  1), dt.datetime(2090,  1,  1))
 
     # plt.ticklabel_format(useOffset=True, axis='y')
     plt.title(index['short_desc'], fontweight='bold')
@@ -446,7 +446,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
         ann_list = []
         for [x, y, color, num] in to_annotate:
             ann_list.append(annot_max(index, x, y, nice_name, color, num))
-        ann_list.append(annot_avg(avg_name))
+        ann_list.append(annot_avg(avg_name, index))
         plt.savefig(png_name_in.replace('.png', '_ind.png'), dpi=150, bbox_inches="tight")
 
         for ann in ann_list:
@@ -459,7 +459,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
         ann_list = []
         for [x, y, color, num] in to_annotate:
             ann_list.append(annot_max(index, x, y, nice_name, color, num))
-        ann_list.append(annot_avg(avg_name))
+        ann_list.append(annot_avg(avg_name, index))
 
         plt.savefig(png_name_in, dpi=150, bbox_inches="tight")
 
@@ -473,6 +473,164 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
             ann_list = []
             for [x, y, color, num] in to_annotate:
                 ann_list.append(annot_max(index, x, y, nice_name, color, num))
-            ann_list.append(annot_avg(avg_name))
+            ann_list.append(annot_avg(avg_name, index))
 
             plt.savefig(png_name_in.replace('.png', '_lim_'+str(index['limits'][1])+'.png'), dpi=150, bbox_inches="tight")
+
+
+def plot_bar(index, regions, glob45, glob85, png_name_in, rel=False):
+
+    import matplotlib.pyplot as plt
+    from math import copysign
+    from indices_misc import debug, clean
+
+    start = 0
+    end = 4
+    barSep = 0.55
+    barWidth = 0.3
+    startpos = [1.5, 2.5+(len(regions)+1)*barSep]  # position for RCP45 and RCP85 in a 0 to 3 line
+    color = {'Global': 'lightgray', 'Alpine': 'papayawhip', 'Andes': 'paleturquoise'}
+
+    texts = []
+    pos = list(startpos)
+
+    plt.figure()
+
+    if glob45 is not None:
+        bars = [glob45-index['hline'], glob85-index['hline']]
+
+        plt.bar(pos, bars, width=barWidth, bottom=index['hline'], color=color['Global'], edgecolor='gray', capsize=2, label='Global')
+
+        texts.append(plt.text(pos[0], glob45, str(round(float(glob45), 1)), zorder=4, ha='center', va='center', fontsize=9,
+                     bbox={'facecolor': 'white', 'edgecolor': 'none', 'pad': -2, 'alpha': 0.5}))
+
+        texts.append(plt.text(pos[1], glob85, str(round(float(glob85), 1)), zorder=4, ha='center', va='center', fontsize=9,
+                     bbox={'facecolor': 'white', 'edgecolor': 'none', 'pad': -2, 'alpha': 0.5}))
+
+        pos[0] += barSep+0.05
+        pos[1] += barSep+0.05
+        end += barSep
+
+    for name, values in regions.items():
+        bars = [values['rcp45']-index['hline'], values['rcp85']-index['hline']]
+        errors = [[values['rcp45']-values['rcp45_25'], values['rcp85']-values['rcp85_25']],
+                  [values['rcp45_75']-values['rcp45'], values['rcp85_75']-values['rcp85']]]
+
+        plt.bar(pos, bars, width=barWidth, bottom=index['hline'], color=color[name], edgecolor='gray', yerr=errors, label=name,
+                error_kw=dict(ecolor='gray', lw=1, capsize=3, capthick=1, alpha=0.5))
+
+        texts.append(plt.text(pos[0], values['rcp45'], str(round(float(values['rcp45']), 1)), zorder=4, ha='center', va='center', fontsize=9,
+                     bbox={'facecolor': 'white', 'edgecolor': 'none', 'pad': -2, 'alpha': 0.5}))
+        texts.append(plt.text(pos[1], values['rcp85'], str(round(float(values['rcp85']), 1)), zorder=4, ha='center', va='center', fontsize=9,
+                     bbox={'facecolor': 'white', 'edgecolor': 'none', 'pad': -2, 'alpha': 0.5}))
+
+        pos[0] += barSep
+        pos[1] += barSep
+        end += barSep*2
+
+    ax = plt.gca()
+
+    correct = (ax.get_ylim()[1]-ax.get_ylim()[0])/25
+    for text in texts:
+        xtext, ytext = text.get_position()
+        ytext -= index['hline']
+        correct = copysign(correct, ytext)
+        ytext = ytext+correct
+        ytext += index['hline']
+        text.set_position([xtext, ytext])
+        if ytext < index['hline']:
+            # ax.tick_params(axis="x", pad=-15)
+            plt.legend(loc='lower left', fontsize=8)
+            plt.title(index['short_desc'], fontweight='bold', pad=25)
+        else:
+            plt.legend(loc='upper left', fontsize=8)
+            plt.title(index['short_desc'], fontweight='bold', pad=10)
+    # ticks = [(pos[0]-startpos[0])/2.0 + startpos[0]-barSep/2, (pos[1]-startpos[1])/2.0 + startpos[1]-barSep/2]
+    plt.text((pos[0]-startpos[0])/2.0 + startpos[0]-barSep/2, ax.get_ylim()[0]-abs(correct), 'RCP4.5', ha='center', va='top', fontweight='bold')
+    plt.text((pos[1]-startpos[1])/2.0 + startpos[1]-barSep/2, ax.get_ylim()[0]-abs(correct), 'RCP8.5', ha='center', va='top', fontweight='bold')
+
+    if rel:
+        plt.ylabel('Relative Change [%]')
+    else:
+        plt.ylabel(index['units'])
+
+    # spine left and bottom at zero. The x does not need ticks
+    ax.spines['left'].set_position('zero')
+    ax.spines['right'].set_color('none')
+    ax.yaxis.tick_left()
+    ax.spines['bottom'].set_position(['data', index['hline']])
+    ax.spines['top'].set_color('none')
+    ax.xaxis.set_ticks_position('none')
+
+    # kwargs = dict(fontweight='bold')
+    # plt.xticks(ticks, ['RCP4.5', 'RCP8.5'], **kwargs)
+    plt.xticks([])
+    plt.xlim(start, end)
+    # plt.show()
+    debug(clean(png_name_in))
+    plt.savefig(png_name_in, dpi=150, bbox_inches="tight")
+
+
+def plot_bar_index(index, files, png_name_in, avg6190):
+
+    from netCDF4 import Dataset  # http://code.google.com/p/netcdf4-python/
+    from useful_functions import moving_average
+
+    window = 10
+    regions = {}
+    regions_rel = {}
+
+    for region in files:
+        regions[region] = {'rcp45': None, 'rcp45_25': None, 'rcp45_75': None,
+                           'rcp85': None, 'rcp85_25': None, 'rcp85_75': None}
+
+        regions_rel[region] = {'rcp45': None, 'rcp45_25': None, 'rcp45_75': None,
+                               'rcp85': None, 'rcp85_25': None, 'rcp85_75': None}
+
+        for file_path_in in files[region]:
+            data_in = Dataset(file_path_in, mode='r')
+            param = data_in.variables[index['cdo_name']][:]
+            param_smoothed = moving_average(arr=param[:, 0, 0], win=window)
+            value = param_smoothed[-1]
+            value_rel = value
+            if index['do_rel']:
+                value_rel = (value*100)/abs(avg6190[region])
+
+            if "25" in file_path_in and "rcp45" in file_path_in:
+                regions[region]['rcp45_25'] = value
+                regions_rel[region]['rcp45_25'] = value_rel
+
+            elif "75" in file_path_in and "rcp45" in file_path_in:
+                regions[region]['rcp45_75'] = value
+                regions_rel[region]['rcp45_75'] = value_rel
+
+            elif "rcp45" in file_path_in:
+                regions[region]['rcp45'] = value
+                regions_rel[region]['rcp45'] = value_rel
+
+            if "25" in file_path_in and "rcp85" in file_path_in:
+                regions[region]['rcp85_25'] = value
+                regions_rel[region]['rcp85_25'] = value_rel
+
+            elif "75" in file_path_in and "rcp85" in file_path_in:
+                regions[region]['rcp85_75'] = value
+                regions_rel[region]['rcp85_75'] = value_rel
+
+            elif "rcp85" in file_path_in:
+                regions[region]['rcp85'] = value
+                regions_rel[region]['rcp85'] = value_rel
+
+    glob45 = None
+    glob85 = None
+    glob45_rel = None
+    glob85_rel = None
+    if 'glob_rcp45' in index:
+        glob45 = index['glob_rcp45']
+        glob85 = index['glob_rcp85']
+        if index['do_rel']:
+            glob45_rel = glob45*100/abs(index['glob_avg6190'])
+            glob85_rel = glob85*100/abs(index['glob_avg6190'])
+
+    plot_bar(index, regions, glob45, glob85, png_name_in)
+    if index['do_rel']:
+        plot_bar(index, regions_rel, glob45_rel, glob85_rel, png_name_in.replace('.png', '_rel.png'), rel=True)
