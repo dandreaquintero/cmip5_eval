@@ -17,6 +17,9 @@ def selyear_index(cdo, index, out_dir, nc_in, nc_in2=None):
         logger.debug(clean(("Error, not an index from etccdi")))
         return
 
+    if nc_in2 is None:
+        nc_in2 = ''
+
     first_year_file = ((nc_in.split("_"))[-2].split("-")[0])[0:4]
     last_year_file = ((nc_in.split("_"))[-2].split("-")[1])[0:4]
 
@@ -35,7 +38,7 @@ def selyear_index(cdo, index, out_dir, nc_in, nc_in2=None):
     nc_out_fldmean = (out_dir + '/' + pathlib.Path(nc_in).stem + "_" + index['name'] + "_ts.nc").replace(first_year_file, first_year)
     # Create nc files for field mean and year mean.
     if os.path.exists(nc_out_fldmean):  # False:
-        logger.debug(clean(("%s already exists", nc_out_fldmean)))
+        logger.debug(clean(nc_out_fldmean + " already exists"))
         return
 
     pathlib.Path(out_dir + '/years/').mkdir(parents=True, exist_ok=True)
@@ -50,14 +53,14 @@ def selyear_index(cdo, index, out_dir, nc_in, nc_in2=None):
         nc_out = out_dir + '/years/' + pathlib.Path(nc_in).stem + "_" + index['name'] + str(year)+".nc"
 
         logger.debug(clean((nc_out)))
-        index_cdo_function(add_params, input=cdo_selyear_command+" "+nc_in,
+        index_cdo_function(add_params, input=cdo_selyear_command+" "+nc_in+" "+nc_in2,
                            output=nc_out, options='-f nc', force=False, returnCdf=False)
 
         # add the out nc to the array
         nc_out_array = nc_out_array+" "+nc_out
 
     # after calculating index for each year, merge them.
-    nc_out_merge = (out_dir + '/years/' + pathlib.Path(nc_in).stem + "_" + index['name'] + ".nc").replace(first_year_file, first_year)  # adapt the name to the actual first year used
+    nc_out_merge = (out_dir + '/' + pathlib.Path(nc_in).stem + "_" + index['name'] + ".nc").replace(first_year_file, first_year)  # adapt the name to the actual first year used
     cdo.mergetime(input=nc_out_array, output=nc_out_merge, options='-f nc', force=False, returnCdf=False)
 
     # fldmean to obtain a timeseries
@@ -93,6 +96,9 @@ def direct_periods_index(cdo, index, out_dir, nc_in, nc_in2=None):
     if index_cdo_function is None:
         logger.debug(clean(("Error, not an index from etccdi")))
         return -1
+    print(nc_in2)
+    if nc_in2 is None:
+        nc_in2 = ''
 
     if 'add_fun' in index:
         index_add_function = getattr(cdo, index['add_fun'])  # get the cdo function coressponding to the input index
@@ -117,11 +123,11 @@ def direct_periods_index(cdo, index, out_dir, nc_in, nc_in2=None):
 
             logger.debug(clean((nc_out)))
             if 'add_fun' not in index:
-                index_cdo_function(add_params, input=cdo_year_command+" "+cdo_season_command+" "+nc_in,
+                index_cdo_function(add_params, input=cdo_year_command+" "+cdo_season_command+" "+nc_in+" "+nc_in2,
                                    output=nc_out, options='-f nc', force=False, returnCdf=False)
             else:
                 cdo_function_command = '-'+index['cdo_fun']+','+add_params
-                index_add_function(index['add_fun_params'], input=cdo_function_command+' '+cdo_year_command+" "+cdo_season_command+" "+nc_in,
+                index_add_function(index['add_fun_params'], input=cdo_function_command+' '+cdo_year_command+" "+cdo_season_command+" "+nc_in+" "+nc_in2,
                                    output=nc_out, options='-f nc', force=False, returnCdf=False)
 
 
@@ -199,13 +205,20 @@ def duration_percentile_index(cdo, index, out_dir, nc_in, nc_in2=None):
     cdo.ydrunmin(windowDays, input=selyear+nc_in, output=nc_out_runmin, options='-f nc', force=False, returnCdf=False)
     cdo.ydrunmax(windowDays, input=selyear+nc_in, output=nc_out_runmax, options='-f nc', force=False, returnCdf=False)
 
-    # calculate required percentile in ref period
-    cdo.ydrunpctl(index['percentile'], windowDays, "rm="+readMethod, "pm="+percentileMethod,
-                  input=selyear+nc_in + " " + nc_out_runmin + " " + nc_out_runmax, output=nc_out_th,
-                  options='-f nc', force=False, returnCdf=False)
+    # calculate index using eca function => do it for each year and then merge
+    if 'eca' in index['cdo_fun']:
+        # calculate required percentile in ref period
+        cdo.ydrunpctl(index['percentile'], windowDays,  # "rm="+readMethod, "pm="+percentileMethod,  # The eca version does not need these input arguments
+                      input=selyear+nc_in + " " + nc_out_runmin + " " + nc_out_runmax, output=nc_out_th,
+                      options='-f nc', force=False, returnCdf=False)
+        selyear_index(cdo, index, out_dir, nc_in, nc_out_th)
 
-    # calculate index
-    index_cdo_function(6, "freq=year", input=nc_in + " " + nc_out_th, output=nc_out_index, options='-f nc', force=False, returnCdf=False)
+    else:  # directly with etccdi, but it gives unexpected results (bug)
+        # calculate required percentile in ref period
+        cdo.ydrunpctl(index['percentile'], windowDays, "rm="+readMethod, "pm="+percentileMethod,
+                      input=selyear+nc_in + " " + nc_out_runmin + " " + nc_out_runmax, output=nc_out_th,
+                      options='-f nc', force=False, returnCdf=False)
+        index_cdo_function(6, "freq=year", input=nc_in + " " + nc_out_th, output=nc_out_index, options='-f nc', force=False, returnCdf=False)
 
     debug(clean((nc_out_index)))
     print("")

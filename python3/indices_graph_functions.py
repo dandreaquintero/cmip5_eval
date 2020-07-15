@@ -2,7 +2,7 @@
 # Only two functions are required, as the merge should be the same for all indices, with some small variations
 
 
-def plot_basemap_regions(index, nc_in, png_name_in, region_in, title, min, max, poly_in=False):
+def plot_basemap_regions(index, nc_in, png_name_in, region_in, title, min, max, png_name_latex=None, poly_in=False):
     '''
 
     '''
@@ -113,44 +113,52 @@ def plot_basemap_regions(index, nc_in, png_name_in, region_in, title, min, max, 
 
     plt.savefig(png_name_in, dpi=200)
     debug(clean((png_name_in)))
+    if png_name_latex is not None:
+        plt.savefig(png_name_latex, dpi=200)
+        debug(png_name_latex)
     # plt.show()
     plt.close()
 
 
-def annot_max(index, x, y, text, color, num, ax=None):
+def annot_max(index, to_annotate, text_in, ax=None):
     import numpy as np
     import matplotlib.pyplot as plt
     import datetime as dt  # Python standard library datetime  module
 
-    div = 3
-    if 'datatip' not in index:
-        return
-    if index['datatip'] == 'min':
-        xmax = x[np.argmin(y)]
-        ymax = y.min()
-    elif index['datatip'] == 'max':
-        xmax = x[np.argmax(y)]
-        ymax = y.max()
-    elif index['datatip'] == 'end':
-        xmax = x[-1]
-        ymax = y[-1]
-    elif index['datatip'] == 'endn':
-        xmax = x[-1]
-        ymax = y[-1]
-        div = 7
-        num = 1 if num == 2 else 2
-    else:
-        return
-
-    text = text+"{:.1f}".format(ymax)
     if not ax:
         ax = plt.gca()
-    ylim = ax.get_ylim()[1]
-    bbox_props = dict(boxstyle="round,pad=0.3", fc=color, ec="k", lw=0.72, zorder=7)
-    arrowprops = dict(arrowstyle="->", connectionstyle="angle3,angleA=0,angleB=90", alpha=0.5, zorder=6)
-    kw = dict(xycoords='data',   # extcoords="axes fraction",
-              arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top", zorder=5, fontsize=9)
-    ann = ax.annotate(text, xy=(xmax, ymax), xytext=(dt.datetime(2120, 1, 1), ymax+num*(ylim-ymax)/div), **kw)
+    positions = np.linspace(ax.get_ylim()[0], ax.get_ylim()[1], num=20)
+
+    [x1, y1, color1] = to_annotate[0]
+    [x2, y2, color2] = to_annotate[1]
+    x1 = x1[-1]
+    y1 = y1[-1]
+    x2 = x2[-1]
+    y2 = y2[-1]
+
+    idx1 = (np.abs(positions-y1)).argmin()
+    idx2 = (np.abs(positions-y2)).argmin()
+
+    if idx1 == idx2:
+        if y1 > y2:
+            idx1 += 1
+        else:
+            idx2 += 1
+
+    if idx1 == len(positions) or idx2 == len(positions):
+        idx1 -= 1
+        idx2 -= 1
+
+    ann = []
+    text_in = ''
+    for [x, y, idx, color] in zip([x1, x2], [y1, y2], [idx1, idx2], [color1, color2]):
+        text = text_in+"{:.1f}".format(y)
+        bbox_props = dict(boxstyle="round,pad=0.2", fc=color, ec="k", lw=0.72, zorder=7)
+        arrowprops = dict(arrowstyle="->", connectionstyle="angle3,angleA=0,angleB=90", alpha=0.5, zorder=6)
+        kw = dict(xycoords='data',   # extcoords="axes fraction",
+                  arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top", zorder=5, fontsize=9)
+        ann.append(ax.annotate(text, xy=(x, y), xytext=(dt.datetime(2099, 1, 1), positions[idx]), **kw))
+
     return ann
 
 
@@ -161,20 +169,16 @@ def annot_avg(text, index):
     if text is None:
         return
     ax = plt.gca()
-    ylim = ax.get_ylim()[1]
-    if 'datatip' not in index:
-        return
-    if index['datatip'] == 'endn':
-        ylim = ax.get_ylim()[0]
+    ylim = ax.get_ylim()[1] + (ax.get_ylim()[1] - ax.get_ylim()[0])/25
 
     bbox_props = dict(boxstyle="round,pad=0.3", fc='lavender', ec="k", lw=0.72, zorder=7)
     kw = dict(xycoords='data',   # extcoords="axes fraction",
               bbox=bbox_props, ha="right", va="top", zorder=5, fontsize=9)
-    ann = ax.annotate(text, xy=(dt.datetime(1990, 1, 1), 0), xytext=(dt.datetime(2120, 1, 1), ylim), **kw)
+    ann = ax.annotate(text, xy=(dt.datetime(1990, 1, 1), 0), xytext=(dt.datetime(2099, 1, 1), ylim), **kw)
     return ann
 
 
-def plot_time_series(index, file_path_in_array, models_plot_array=None, region=None, png_name_in=None, min=None, max=None, avg6190=None):
+def plot_time_series(index, file_path_in_array, models_plot_array=None, region=None, png_name_in=None, png_name_latex=None, min=None, max=None, avg6190=None):
     '''
     plot_time_series ...
     '''
@@ -209,6 +213,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
     histo_rcp85_p75_fill = None
 
     days_2006 = 57160.5  # 2006 value in time:units = "days since 1850-1-1 00:00:00" ; time:calendar = "standard" ;'
+    minutes_2006 = days_2006 * 24 * 60
     half_window = 0  # half of the window for the smoothing, in years
     half_window2 = 5  # half of the window for the smoothing, in years
 
@@ -245,7 +250,13 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
             cdftime = utime(time_uni, calendar=time_cal)
             date = [cdftime.num2date(t) for t in time]
 
-            index_2006 = bisect_left(time, days_2006)
+            if 'minutes' in time_uni:
+                index_2006 = bisect_left(time, minutes_2006)
+            elif 'days' in time_uni:
+                index_2006 = bisect_left(time, days_2006)
+            else:
+                debug('wrong time units, this function only works with minutes or days units, please modify the script for yours')
+                return
 
             param_scaled_smoothed = moving_average(arr=param[:, 0, 0], win=window)
 
@@ -275,7 +286,13 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
 
         # ############# A plot of Maximum precipitation ##############
 
-        index_2006 = bisect_left(time, days_2006)
+        if 'minutes' in time_uni:
+            index_2006 = bisect_left(time, minutes_2006)
+        elif 'days' in time_uni:
+            index_2006 = bisect_left(time, days_2006)
+        else:
+            debug('wrong time units, this function only works with minutes or days units, please modify the script for yours')
+            return
 
         param_smoothed = moving_average(arr=param[:, 0, 0], win=window)
         param_smoothed2 = moving_average(arr=param[:, 0, 0], win=window2)
@@ -297,7 +314,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
         elif "rcp45" in file_path_in:
             plt.plot(date[index_2006-1: -date_end if window > 0 else None], param_smoothed[index_2006-1-date_end-1:], 'g', zorder=4, alpha=0.3)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
             plt.plot(date[index_2006-1: -date_end2 if window2 > 0 else None], param_smoothed2[index_2006-1-date_end2-1:], 'g', label="RCP45", zorder=5)
-            to_annotate.append([date[index_2006-1: -date_end2 if window2 > 0 else None], param_smoothed2[index_2006-1-date_end2-1:], 'palegreen', 1])
+            to_annotate.append([date[index_2006-1: -date_end2 if window2 > 0 else None], param_smoothed2[index_2006-1-date_end2-1:], 'palegreen'])
             if show_each:
                 plt.plot(date[date_start: index_2006],  param_smoothed[:index_2006-date_start],   'k', zorder=4, label=pathlib.Path(file_path_in).stem.split("45")[0]) #.split("_histo")[0])
             else:
@@ -321,7 +338,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
         elif "rcp85" in file_path_in:
             plt.plot(date[index_2006-1:-date_end if window > 0 else None], param_smoothed[index_2006-1-date_end-1:], 'r', zorder=4, alpha=0.3)  # label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
             plt.plot(date[index_2006-1: -date_end2 if window2 > 0 else None], param_smoothed2[index_2006-1-date_end2-1:], 'r', label="RCP45", zorder=5)
-            to_annotate.append([date[index_2006-1: -date_end2 if window2 > 0 else None], param_smoothed2[index_2006-1-date_end2-1:], 'lightsalmon', 2])
+            to_annotate.append([date[index_2006-1: -date_end2 if window2 > 0 else None], param_smoothed2[index_2006-1-date_end2-1:], 'lightsalmon'])
             if show_each:
                 plt.plot(date[date_start:index_2006],  param_smoothed[:index_2006-date_start],   'k', zorder=4, label=pathlib.Path(file_path_in).stem.split("45")[0])#.split("_histo")[0])
             else:
@@ -413,7 +430,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
     # format the ticks
     years_fmt = date_plt.DateFormatter('%Y')
     ax.xaxis.set_major_formatter(years_fmt)
-    plt.xlim(dt.datetime(1861,  1,  1), dt.datetime(2090,  1,  1))
+    plt.xlim(dt.datetime(1861,  1,  1), dt.datetime(2100,  1,  1))
 
     # plt.ticklabel_format(useOffset=True, axis='y')
     plt.title(index['short_desc'], fontweight='bold')
@@ -441,11 +458,8 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
             avg_name = (index['short_desc'].split('(')[1].split(')')[0]+" [1961:1990] = "+str(round(float(avg6190), 1)))
         else:
             avg_name = None
-
-        debug(clean((png_name_in)))
         ann_list = []
-        for [x, y, color, num] in to_annotate:
-            ann_list.append(annot_max(index, x, y, nice_name, color, num))
+        ann_list.extend(annot_max(index, to_annotate, nice_name))
         ann_list.append(annot_avg(avg_name, index))
         plt.savefig(png_name_in.replace('.png', '_ind.png'), dpi=150, bbox_inches="tight")
 
@@ -457,11 +471,14 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
             plt.ylim(min, max)
 
         ann_list = []
-        for [x, y, color, num] in to_annotate:
-            ann_list.append(annot_max(index, x, y, nice_name, color, num))
+        ann_list.extend(annot_max(index, to_annotate, nice_name))
         ann_list.append(annot_avg(avg_name, index))
 
         plt.savefig(png_name_in, dpi=150, bbox_inches="tight")
+        debug(clean(png_name_in))
+        if png_name_latex is not None:
+            debug(clean(png_name_latex))
+            plt.savefig(png_name_latex, dpi=150, bbox_inches="tight")
 
         for ann in ann_list:
             if ann is not None:
@@ -471,8 +488,7 @@ def plot_time_series(index, file_path_in_array, models_plot_array=None, region=N
             plt.ylim(index['limits'][0], index['limits'][1])
 
             ann_list = []
-            for [x, y, color, num] in to_annotate:
-                ann_list.append(annot_max(index, x, y, nice_name, color, num))
+            ann_list.extend(annot_max(index, to_annotate, nice_name))
             ann_list.append(annot_avg(avg_name, index))
 
             plt.savefig(png_name_in.replace('.png', '_lim_'+str(index['limits'][1])+'.png'), dpi=150, bbox_inches="tight")
@@ -546,8 +562,8 @@ def plot_bar(index, regions, glob45, glob85, png_name_in, rel=False):
             plt.legend(loc='upper left', fontsize=8)
             plt.title(index['short_desc'], fontweight='bold', pad=10)
     # ticks = [(pos[0]-startpos[0])/2.0 + startpos[0]-barSep/2, (pos[1]-startpos[1])/2.0 + startpos[1]-barSep/2]
-    plt.text((pos[0]-startpos[0])/2.0 + startpos[0]-barSep/2, ax.get_ylim()[0]-abs(correct), 'RCP4.5', ha='center', va='top', fontweight='bold')
-    plt.text((pos[1]-startpos[1])/2.0 + startpos[1]-barSep/2, ax.get_ylim()[0]-abs(correct), 'RCP8.5', ha='center', va='top', fontweight='bold')
+    tx45 = plt.text((pos[0]-startpos[0])/2.0 + startpos[0]-barSep/2, ax.get_ylim()[0]-abs(correct), 'RCP4.5', ha='center', va='top', fontweight='bold')
+    tx85 = plt.text((pos[1]-startpos[1])/2.0 + startpos[1]-barSep/2, ax.get_ylim()[0]-abs(correct), 'RCP8.5', ha='center', va='top', fontweight='bold')
 
     if rel:
         plt.ylabel('Relative Change [%]')
@@ -572,9 +588,12 @@ def plot_bar(index, regions, glob45, glob85, png_name_in, rel=False):
 
     if 'limit_barplot' in index:
         plt.ylim(index['limit_barplot'])
+        correct = (ax.get_ylim()[1]-ax.get_ylim()[0])/25
+        tx45.set_position([(pos[0]-startpos[0])/2.0 + startpos[0]-barSep/2, ax.get_ylim()[0]-abs(correct)])
+        tx85.set_position([(pos[1]-startpos[1])/2.0 + startpos[1]-barSep/2, ax.get_ylim()[0]-abs(correct)])
+        plt.legend(loc=index['legendb'], fontsize=8)
+        plt.title(index['short_desc'], fontweight='bold', pad=index['titlepad'])
         plt.savefig(png_name_in.replace('.png', '_lim.png'), dpi=150, bbox_inches="tight")
-
-
 
 
 def plot_bar_index(index, files, png_name_in, avg6190):

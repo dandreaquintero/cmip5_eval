@@ -7,7 +7,7 @@ import argparse
 import sys
 
 nc_dir = "/Users/danielaquintero/Documents/tesis/cmip5_eval/nc_files/"
-index_dir = "indices/r30mm"
+index_dir = "indices/wsdieca"
 
 cdo = Cdo()
 cdo.degub = True
@@ -45,9 +45,9 @@ for region, region_path in get_subdirs(nc_dir+index_dir):
             print("no files in rcp path")
             continue
 
-        file_merge = file_rcp85_path.replace("2005", "1861")
+        file_merge = file_rcp85_merge.replace("2005", "1861")
         print(file_merge)
         print("")
 
         cdo.mergetime(input="-selyear,1861/2005 "+file_rcp45_merge + " " + "-selyear,2006/2090 " + file_rcp85_merge,
-                       output=file_merge, options='-f nc', force=False, returnCdf=False)
+                      output=file_merge, options='-f nc', force=False, returnCdf=False)

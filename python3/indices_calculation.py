@@ -17,6 +17,7 @@ def loop_models():
         for model, model_path in get_subdirs(experiment):
             param_path_list = {}
             if 'ignore' in index_in and [model, args.rcp] in index_in['ignore']:  # this model/rcp should not be used for this index
+                debug(model+' Ignored ')
                 continue
             # loop of all parameters inside each model
             for param, param_path in get_subdirs(model_path):
@@ -49,13 +50,13 @@ def loop_models():
                                 else:  # index with multiple param
                                     param_path_list[region][-1] = output_dir
                                     param_path_list[region][index_in['param'].index(param)] = file_path
-
-            for region, paths in param_path_list.items():
-                for function in index_in['loop_functions']:
-                    if paths[-1] != '' and paths[0] != '' and paths[1] != '':
-                        function(index=index_in, cdo=cdo, out_dir=paths[-1], nc_in=paths[0], nc_in2=paths[1])
-                    else:
-                        debug(clean("Missign param for out_dir: " + paths[-1]))
+            if len(index_in['param']) > 1:
+                for region, paths in param_path_list.items():
+                    for function in index_in['loop_functions']:
+                        if paths[-1] != '' and paths[0] != '' and paths[1] != '':
+                            function(index=index_in, cdo=cdo, out_dir=paths[-1], nc_in=paths[0], nc_in2=paths[1])
+                        else:
+                            debug(clean("Missign param for out_dir: " + paths[-1]))
 
 
 def merge_index(periods=False, ts=False):
@@ -149,26 +150,32 @@ def graph_map():
                         season_name = " (" + season + ")"
 
                     for file, file_path in get_subfiles(season_path):
+                        png_name_latex = indices_graphs_out_dir+"/"+index_l+"/"+region+"/"+rcp+"/"+season+"/"+file.replace('.nc', '.png')
                         for period in period_name_array:
                             if period in file:
                                 title = period_title_array[period_name_array.index(period)] + season_name
                                 if 'future' in period:
                                     title += ' (' + str.upper(rcp).replace('5', '.5') + ')'
+                                elif '45' in rcp:
+                                    png_name_latex = None  # 45 are not needed in latex expect the future one
                                 break
 
                         if file.startswith("._"):
                             pass
+
                         elif (file.endswith("sub.nc") and index_in['do_anom']) or (file.endswith('.nc') and 'reference' not in file and not index_in['do_anom']):
-                            plot_basemap_regions(index_in, file_path, file_path.replace(".nc", ".png"), region, title, min_sub, max_sub)
+                            plot_basemap_regions(index_in, file_path, file_path.replace(".nc", ".png"), region, title, min_sub, max_sub, png_name_latex)
 
                         elif 'reference' in file and file.endswith('.nc'):
-                            plot_basemap_regions(index_in, file_path, file_path.replace(".nc", ".png"), region, title, min_ref, max_ref)
+                            plot_basemap_regions(index_in, file_path, file_path.replace(".nc", ".png"), region, title, min_ref, max_ref, None)
 
                         elif 'ignore' in index_in and region in index_in['ignore']:
                             continue
 
                         elif file.endswith("sub_rel.nc") and index_in['do_rel']:
-                            plot_basemap_regions(index_in, file_path, file_path.replace(".nc", ".png"), region, title, min_rel, max_rel)
+                            if 'future' not in file:
+                                png_name_latex = None  # rel graphs only needed for future
+                            plot_basemap_regions(index_in, file_path, file_path.replace(".nc", ".png"), region, title, min_rel, max_rel, png_name_latex)
 
 
 def graph_ts():
@@ -237,7 +244,9 @@ def graph_ts():
                         files_to_plot.append(file_path)
                         debug(clean((file_path)))
             plot_time_series(index_in, files_to_plot, models_plot_array=models_plot[region], region=region,
-                             png_name_in=region_path+"/"+index_in['name']+'_'+region+'_Models_ts.png', min=min(min_list[region]), max=max(max_list[region]), avg6190=avg6190[region])
+                             png_name_in=region_path+"/"+index_in['name']+'_'+region+'_Models_ts.png',
+                             png_name_latex=indices_graphs_out_dir+"/"+index_l+"/"+region+"/"+index_in['name']+'_'+region+'_Models_ts.png',
+                             min=min(min_list[region]), max=max(max_list[region]), avg6190=avg6190[region])
             plot_time_series(index_in, files_to_plot, region=region,
                              png_name_in=region_path+"/"+index_in['name']+'_'+region+'_ts.png', min=min(min_list[region]), max=max(max_list[region]), avg6190=avg6190[region])
 

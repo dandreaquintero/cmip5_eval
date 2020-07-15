@@ -200,7 +200,7 @@ indices = {
         'name': 'txxy',
         'cdo_name': 'txxyETCCDI',
         'description': '6. annual maximum value of daily maximum temperature.',
-        'short_desc': 'Annual Maximum of TX (TXx)',
+        'short_desc': 'Warmest Day in the year (TXx)',
         'param': ['tasmax'],
 
         'cdo_fun': '  -chunit,K,C -subc,273.15  -yearmax ',
@@ -224,6 +224,8 @@ indices = {
 
         'glob_rcp45': 2,
         'glob_rcp85': 4.0,
+
+        'limit_barplot': [0, 8.5]
     },
 
 
@@ -258,7 +260,7 @@ indices = {
         'name': 'tnxy',
         'cdo_name': 'tnxyETCCDI',
         'description': '7. annual maximum value of daily minimum temperature.',
-        'short_desc': 'Annual Maximum of TN (TNx)',
+        'short_desc': 'Warmest Night in the year (TNx)',
         'param': ['tasmin'],
 
         'cdo_fun': '  -chunit,K,C -subc,273.15  -yearmax ',
@@ -282,6 +284,8 @@ indices = {
 
         'glob_rcp45': 2,
         'glob_rcp85': 4.1,
+
+        'limit_barplot': [0, 8.5]
     },
 
 
@@ -316,7 +320,7 @@ indices = {
         'name': 'txny',
         'cdo_name': 'txnyETCCDI',
         'description': '8. annual minimum value of daily maximum temperature.',
-        'short_desc': 'Annual Minimum of TX (TXn)',
+        'short_desc': 'Coldest Day in the year (TXn)',
         'param': ['tasmax'],
 
         'cdo_fun': ' -chunit,K,C -subc,273.15 -yearmin ',
@@ -340,6 +344,8 @@ indices = {
 
         'glob_rcp45': 2.5,
         'glob_rcp85': 5.0,
+
+        'limit_barplot': [0, 8.5]
     },
 
 
@@ -374,7 +380,7 @@ indices = {
         'name': 'tnny',
         'cdo_name': 'tnnyETCCDI',
         'description': '9.  annual minimum value of daily minimum temperature.',
-        'short_desc': 'Annual Minumum of TN (TNn)',
+        'short_desc': 'Coldest Night in the year (TNn)',
         'param': ['tasmin'],
 
         'cdo_fun': ' -chunit,K,C -subc,273.15 -yearmin ',
@@ -398,6 +404,8 @@ indices = {
 
         'glob_rcp45': 2.8,
         'glob_rcp85': 5.5,
+
+        'limit_barplot': [0, 8.5]
     },
 
 
@@ -528,13 +536,43 @@ indices = {
         'name': 'wsdi',
         'cdo_name': 'wsdiETCCDI',
         'description': '14. warm spell duration index: annual count of days with at least 6 consecutive days when tx > 90th percentile.',
-        'short_desc': 'Warm spell Duration (WSDI)',
+        'short_desc': 'Warm Spell Duration (WSDI)',
         'param': ['tasmax'],
 
         'cdo_fun': 'etccdi_wsdi',
         'seasons': ['ANN'],
         'percentile': '90',
         'loop_functions': [duration_percentile_index, generate_periods, generate_ts],
+
+        'do_anom': True,
+        'merge_functions': [merge_periods, merge_ts],
+
+        'do_rel': True,
+        'hline': 0,
+        'colorbar': 'temp_pos',
+        'units': 'Days',
+        'min_perc': 15,
+        'max_perc': 85,
+        'min_perc_rel': 25,
+        'max_perc_rel': 75,
+        'datatip': 'end',
+
+        'glob_rcp45': 158,
+        'glob_rcp85': 250,
+        'glob_avg6190': 8,
+    },
+    'wsdieca': {
+        'name': 'wsdieca',
+        'cdo_name': 'warm_spell_days_index_wrt_90th_percentile_of_reference_period',
+        'description': '14. warm spell duration index: annual count of days with at least 6 consecutive days when tx > 90th percentile.',
+        'short_desc': 'Warm Spell Duration (WSDI)',
+        'param': ['tasmax'],
+
+        'cdo_fun': 'eca_hwfi',
+        'seasons': ['ANN'],
+        'percentile': '90',
+        'ignore': [['HadGEM2-ES', 'rcp45'], ['HadGEM2-ES', 'rcp85'], ['HadGEM2-CC', 'rcp45'], ['HadGEM2-CC', 'rcp85'], ['HadGEM2-AO', 'rcp45'], ['HadGEM2-AO', 'rcp85']],
+        'loop_functions': [duration_percentile_index, generate_periods],
 
         'do_anom': True,
         'merge_functions': [merge_periods, merge_ts],
@@ -585,7 +623,36 @@ indices = {
         'glob_rcp85': -7,
         'glob_avg6190': 7,
     },
+    'csdieca': {
+        'name': 'csdieca',
+        'cdo_name': 'cold_spell_days_index_wrt_10th_percentile_of_reference_period',
+        'description': '15. cold spell duration index: annual count of days with at least 6 consecutive days when tn < 10th percentile.',
+        'short_desc': 'Cold Spell Duration (CSDI)',
+        'param': ['tasmin'],
 
+        'cdo_fun': 'eca_cwfi',
+        'seasons': ['ANN'],
+        'percentile': '10',
+        'ignore': [['HadGEM2-ES', 'rcp45'], ['HadGEM2-ES', 'rcp85'], ['HadGEM2-CC', 'rcp45'], ['HadGEM2-CC', 'rcp85'], ['HadGEM2-AO', 'rcp45'], ['HadGEM2-AO', 'rcp85']],
+        'loop_functions': [duration_percentile_index, generate_periods],
+
+        'do_anom': True,
+        'merge_functions': [merge_periods, merge_ts],
+
+        'do_rel': True,
+        'hline': 0,
+        'colorbar': 'temp_neg',
+        'units': 'Days',
+        'min_perc': 15,
+        'max_perc': 85,
+        'min_perc_rel': 25,
+        'max_perc_rel': 75,
+        'datatip': 'endn',
+
+        'glob_rcp45': -7,
+        'glob_rcp85': -7,
+        'glob_avg6190': 7,
+    },
 
     'dtr': {
         'name': 'dtr',
@@ -693,6 +760,8 @@ indices = {
         'glob_rcp45': 4.2,
         'glob_rcp85': 9.2,
         'glob_avg6190': 40.5,
+
+        'limit_barplot': [-5, 45]
     },
 
 
@@ -753,6 +822,8 @@ indices = {
         'glob_rcp45': 7.7,
         'glob_rcp85': 15,
         'glob_avg6190': 91.5,
+
+        'limit_barplot': [-5, 45]
     },
 
 
@@ -785,6 +856,8 @@ indices = {
         'glob_rcp45': 0.33,
         'glob_rcp85': 0.62,
         'glob_avg6190': 6.17,
+
+        'limit_barplot': [-13, 20]
     },
 
 
@@ -800,7 +873,7 @@ indices = {
         'seasons': ['ANN'],
         'loop_functions': [normal_index, generate_periods, generate_ts],
 
-        'ignore': [['BCC-CSM1.1', 'glob_rcp45']],
+        'ignore': [['BCC-CSM1.1', 'rcp45']],
         'do_anom': True,
         'merge_functions': [merge_periods, merge_ts],
 
@@ -817,6 +890,10 @@ indices = {
         'glob_rcp45': 1.5,
         'glob_rcp85': 2.5,
         'glob_avg6190': 29.25,
+
+        'limit_barplot': [-12, 60],
+        'legendb': 'upper left',
+        'titlepad': 10
     },
 
 
@@ -832,7 +909,7 @@ indices = {
         'seasons': ['ANN'],
         'loop_functions': [normal_index, generate_periods, generate_ts],
 
-        'ignore': [['BCC-CSM1.1', 'glob_rcp45'], ['GISS-E2-H', 'glob_rcp85']],
+        'ignore': [['BCC-CSM1.1', 'rcp45'], ['GISS-E2-H', 'rcp85']],
         'do_anom': True,
         'merge_functions': [merge_periods, merge_ts],
 
@@ -849,6 +926,10 @@ indices = {
         'glob_rcp45': 0.95,
         'glob_rcp85': 1.6,
         'glob_avg6190': 8.8,
+
+        'limit_barplot': [-12, 60],
+        'legendb': 'upper left',
+        'titlepad': 10
     },
 
 
@@ -865,7 +946,7 @@ indices = {
         'add_fun': 'divc',  # the output is not normalized per year
         'add_fun_params': '30',  # to nomralize, divide by the number of years (30)
         'seasons': ['ANN'],
-        'ignore': [['BCC-CSM1.1', 'glob_rcp45']],
+        'ignore': [['BCC-CSM1.1', 'rcp45']],
         'loop_functions': [selyear_index, direct_periods_index],  # div_timeperiod],
 
         'do_anom': True,
@@ -943,6 +1024,10 @@ indices = {
         'glob_rcp45': 1.25,
         'glob_rcp85': 3.3,
         'glob_avg6190': 46,
+
+        'limit_barplot': [-30, 50],
+        'legendb': 'upper left',
+        'titlepad': 10
     },
 
 
@@ -974,6 +1059,10 @@ indices = {
         'glob_rcp45': 0.28,
         'glob_rcp85': 0.15,
         'glob_avg6190': 20.64,
+
+        'limit_barplot': [-30, 50],
+        'legendb': 'upper left',
+        'titlepad': 10
     },
 
 
@@ -1006,6 +1095,8 @@ indices = {
         'glob_rcp45': 50,
         'glob_rcp85': 100,
         'glob_avg6190': 219,
+
+        'limit_barplot': [-5, 148]
     },
 
 
@@ -1039,6 +1130,8 @@ indices = {
         'glob_rcp45': 29,
         'glob_rcp85': 65,
         'glob_avg6190': 67,
+
+        'limit_barplot': [-5, 148]
     },
 
 
@@ -1053,7 +1146,7 @@ indices = {
         'cdo_fun': ' -yearsum -setrtomiss,-50,1 ',
         'long_name': '\"Annual total precipitation in wet days\"',
         'seasons': ['ANN'],
-        'ignore': [['BCC-CSM1.1', 'glob_rcp45']],
+        'ignore': [['BCC-CSM1.1', 'rcp45']],
         'loop_functions': [manual_index, generate_periods, generate_ts],
 
         'do_anom': True,
@@ -1072,5 +1165,7 @@ indices = {
         'glob_rcp45': 42,
         'glob_rcp85': 75,
         'glob_avg6190': 1012,
+
+        'limit_barplot': [-13, 20]
     }
 }
